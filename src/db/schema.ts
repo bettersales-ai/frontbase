@@ -20,13 +20,16 @@ export const salesRepTable = pgTable("sales_rep", {
   updated_at: timestamp().notNull().defaultNow(),
   deleted_at: timestamp(),
 
+  user_id: varchar()
+    .notNull().references(() => usersTable.id),
+
   name: varchar({ length: 255 }).notNull(),
   sop: varchar({ length: 255 }).notNull(),
 
   whatappCredentials: jsonb()
-    .$type<WhatsAppCredentials[]>()
+    .$type<WhatsAppCredentials>()
     .notNull()
-    .default([]),
+    .default({} as WhatsAppCredentials),
 
   is_active: boolean().notNull().default(true),
 });

@@ -1,0 +1,130 @@
+name: Server Deployment
+on:
+  push:
+    branches:
+      - main
+
+env:
+  image: registry.fly.io/bettersalesai-kickads
+
+jobs:
+  build:
+    name: Build docker image
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Flyctl
+        uses: superfly/flyctl-actions/setup-flyctl@master
+  
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+        with:
+          driver-opts: |
+            network=host
+            image=moby/buildkit:master
+
+      - name: Setup linux port forwarding
+        run: |
+          #!/usr/bin/env bash
+
+          echo 'net.ipv4.ip_forward = 1' | sudo tee -a /etc/sysctl.d/99-tailscale.conf
+          echo 'net.ipv6.conf.all.forwarding = 1' | sudo tee -a /etc/sysctl.d/99-tailscale.conf
+          sudo sysctl -p /etc/sysctl.d/99-tailscale.conf
+
+      - name: Setup Tailscale
+        uses: tailscale/github-action@v3
+        with:
+          tags: tag:ci
+          version: latest
+          use-cache: true
+          oauth-secret: ${{ secrets.TS_OAUTH_SECRET }}
+          oauth-client-id: ${{ secrets.TS_OAUTH_CLIENT_ID }}
+
+      - run: flyctl auth docker
+        env:
+          FLY_API_TOKEN: ${{ secrets.FLY_API_TOKEN }}
+
+      - name: Run ssh in background
+        run: |
+          ssh -N -L 6379:localhost:6379 -L 5432:localhost:5432 -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null admin@database &
+          echo $! > ssh.pid
+
+      - name: Build and push
+        uses: docker/build-push-action@v6
+        with:
+          push: true
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+          tags: ${{ env.image }}:${{ github.sha }}
+          secrets: |
+            "deploy=${{ secrets.DEPLOY_SECRETS }}"
+
+      - name: Stop ssh
+        run: |
+          kill $(cat ssh.pid)
+          rm ssh.pid
+        continue-on-error: true
+
+  deploy:
+    name: Deploy app
+    needs: build
+    runs-on: ubuntu-latest
+    concurrency: deploy-group    # optional: ensure only one action runs at a time
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Flyctl
+        uses: superfly/flyctl-actions/setup-flyctl@master
+
+      - name: Deploy to fly.io
+        run: flyctl deploy --image=${{ env.image }}:${{ github.sha }}
+        env:
+          FLY_API_TOKEN: ${{ secrets.FLY_API_TOKEN }}
+
+  run_migrations:
+    needs: build
+    name: Run migrations
+    runs-on: ubuntu-latest
+    concurrency: migration-group    # optional: ensure only one action runs at a time
+    steps:
+      - uses: actions/checkout@v4
+      - uses: superfly/flyctl-actions/setup-flyctl@master
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: "yarn"
+
+      - name: Setup Tailscale
+        uses: tailscale/github-action@v3
+        with:
+          tags: tag:ci
+          version: latest
+          use-cache: true
+          oauth-secret: ${{ secrets.TS_OAUTH_SECRET }}
+          oauth-client-id: ${{ secrets.TS_OAUTH_CLIENT_ID }}
+
+      - name: Run ssh in background
+        run: |
+          ssh -N -L 6379:localhost:6379 -L 5432:localhost:5432 -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null admin@database &
+          echo $! > ssh.pid
+
+      - name: Setup secrets
+        run: echo "$DEPLOY_SECRETS" > .env
+        env:
+          DEPLOY_SECRETS: ${{ secrets.DEPLOY_SECRETS }}
+
+      - name: Install dependencies
+        run : yarn install --production=false
+
+      - run: yarn db:migrate
+
+      - name: Stop ssh
+        run: |
+          kill $(cat ssh.pid)
+          rm ssh.pid
+        continue-on-error: true

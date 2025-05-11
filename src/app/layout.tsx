@@ -3,7 +3,13 @@ import React from "react";
 import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 
+import { Toaster } from "sonner";
+import { LogSnagProvider } from "@logsnag/next";
+
 import "./globals.css";
+
+const LOGSNAG_TOKEN = process.env.LOGSNAG_TOKEN || "";
+const LOGSNAG_PROJECT = process.env.LOGSNAG_PROJECT || "";
 
 const inter = Inter({
   subsets: ["latin"],
@@ -15,14 +21,22 @@ export const metadata: Metadata = {
   description: "Create kick ass ads for your business",
 };
 
+
 interface RootLayoutProps {
   children: React.ReactNode;
 }
 
-export default function RootLayout({ children }: RootLayoutProps) {
+export default function RootLayout({ children }: Readonly<RootLayoutProps>) {
   return (
     <html lang="en">
-      <body className={`${inter.className} antialiased`}>
+      <head>
+        <LogSnagProvider
+          token={LOGSNAG_TOKEN}
+          project={LOGSNAG_PROJECT}
+        />
+      </head>
+      <body className={`${inter.className} ${inter.variable} antialiased text-gray-800`}>
+        <Toaster />
         {children}
       </body>
     </html>

@@ -1,6 +1,8 @@
 import { nanoid } from "nanoid";
 import { pgTable, timestamp, varchar, jsonb, boolean } from "drizzle-orm/pg-core";
+
 import { WhatsAppCredentials } from "@/types";
+
 
 export const usersTable = pgTable("users", {
   picture: varchar({ length: 255 }),
@@ -24,7 +26,10 @@ export const salesRepTable = pgTable("sales_rep", {
     .notNull().references(() => usersTable.id),
 
   name: varchar({ length: 255 }).notNull(),
-  sop: varchar({ length: 255 }).notNull(),
+  sop: varchar({ length: 1000 }).notNull(),
+
+  initial_message: varchar({ length: 255 }).notNull().default(""),
+  ideal_customer_profile: varchar({ length: 255 }).notNull().default(""),
 
   whatappCredentials: jsonb()
     .$type<WhatsAppCredentials>()

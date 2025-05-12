@@ -19,8 +19,33 @@
   }
 }
 
-body {
+@layer base {
+  button {
+    @apply cursor-pointer;
+  }
+}
+
+@utility scrollbar-hidden {
+  &::-webkit-scrollbar {
+    display: none;
+  }
+}
+
+@utility emphasis-text {
+  @apply font-bold tracking-tight capitalize bg-gradient-to-r from-indigo-600 to-purple-600 text-transparent bg-clip-text;
+}
+
+@utility std-padding-x {
+  @apply sm:px-16 px-4;
+}
+
+@utility small-caps {
+  font-variant: all-small-caps;
+}
+
+
+/* body {
   background: var(--background);
   color: var(--foreground);
   font-family: Arial, Helvetica, sans-serif;
-}
+} */

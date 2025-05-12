@@ -1,7 +1,7 @@
 import { nanoid } from "nanoid";
 import { pgTable, timestamp, varchar, jsonb, boolean } from "drizzle-orm/pg-core";
 
-import { WhatsAppCredentials } from "@/types";
+import { Message, WhatsAppCredentials } from "@/types";
 
 
 export const usersTable = pgTable("users", {
@@ -58,3 +58,51 @@ export const productsTable = pgTable("products", {
     .notNull().references(() => usersTable.id),
 });
 
+
+export const contactsTable = pgTable("contacts", {
+  id: varchar().primaryKey().$defaultFn(nanoid),
+
+  created_at: timestamp().notNull().defaultNow(),
+  updated_at: timestamp().notNull().defaultNow(),
+  deleted_at: timestamp(),
+
+  user_id: varchar()
+    .notNull().references(() => usersTable.id),
+
+  name: varchar({ length: 255 }).notNull(),
+
+  address: varchar({ length: 255 }),
+  city: varchar({ length: 255 }),
+  state: varchar({ length: 255 }),
+  country: varchar({ length: 255 }),
+
+  email: varchar({ length: 255 }),
+  whatsapp: varchar({ length: 255 }),
+});
+
+export const conversationsTable = pgTable("conversations", {
+  id: varchar().primaryKey().$defaultFn(nanoid),
+
+  deleted_at: timestamp(),
+  created_at: timestamp().notNull().defaultNow(),
+  updated_at: timestamp().notNull().defaultNow(),
+
+  user_id: varchar()
+    .notNull().references(() => usersTable.id),
+
+  sales_rep_id: varchar()
+    .notNull().references(() => salesRepTable.id),
+
+  contact_id: varchar()
+    .notNull().references(() => contactsTable.id),
+
+  messages: jsonb()
+    .$type<Message[]>()
+    .notNull()
+    .default([]),
+
+  status: varchar()
+    .$type<"running" | "failed" | "success">()
+    .notNull()
+    .default("running"),
+});

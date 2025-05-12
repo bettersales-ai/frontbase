@@ -52,7 +52,7 @@ const Products = async (): Promise<React.JSX.Element> => {
             </div>
           </div>
         ))}
-        <Link href="/products/create" className="bg-white border-2 border-dashed border-gray-300 flex flex-col justify-center items-center rounded-lg h-[12rem] transition-all hover:border-gray-400 hover:bg-gray-50">
+        <Link href="/products/add" className="bg-white border-2 border-dashed border-gray-300 flex flex-col justify-center items-center rounded-lg h-[12rem] transition-all hover:border-gray-400 hover:bg-gray-50">
           <PlusIcon className="w-12 h-12 text-gray-400" />
           <span className="text-sm font-medium text-gray-600 mt-2">Add Product</span>
         </Link>

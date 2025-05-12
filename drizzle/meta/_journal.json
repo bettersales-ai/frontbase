@@ -22,6 +22,13 @@
       "when": 1747065177659,
       "tag": "0002_tricky_vapor",
       "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1747067296700,
+      "tag": "0003_tan_steve_rogers",
+      "breakpoints": true
     }
   ]
 }

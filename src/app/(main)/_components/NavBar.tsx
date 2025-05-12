@@ -14,10 +14,10 @@ const NavBar = async (): Promise<React.ReactElement> => {
   return (
     <nav className="flex flex-row-reverse items-center justify-between w-full px-16 py-8">
       <div className="flex items-center gap-2">
-        <Link href="/history" className="px-3 py-2 text-sm font-semibold rounded-lg text-gray-500 hover:bg-gray-200">
+        <Link href="/products" className="px-3 py-2 text-sm font-semibold rounded-lg text-gray-500 hover:bg-gray-200">
           Products
         </Link>
-        <Link href="/history" className="px-3 py-2 text-sm font-semibold rounded-lg text-gray-500 hover:bg-gray-200">
+        <Link href="/conversations" className="px-3 py-2 text-sm font-semibold rounded-lg text-gray-500 hover:bg-gray-200">
           Conversations
         </Link>
         <Link href="/billing" className="px-3 py-2 flex gap-2.5 items-center text-sm text-gray-500 font-semibold rounded-lg hover:bg-gray-200">

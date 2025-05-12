@@ -9,7 +9,6 @@ import * as Yup from "yup";
 import { useFormik } from "formik";
 import { createSalesRep } from "./actions";
 
-
 const StepIndicator = ({ currentStep }: { currentStep: number }) => (
   <div className="mb-8 w-full max-w-3xl">
     <div className="relative flex justify-between">
@@ -51,78 +50,110 @@ const StepIndicator = ({ currentStep }: { currentStep: number }) => (
 
 const validationSchema = Yup.object({
   name: Yup.string().required("Agent name is required"),
+  accessToken: Yup.string().required("Access Token is required"),
   sop: Yup.string().required("Standard operating procedure is required"),
-  whatsappId: Yup.string().required("WhatsApp ID is required"),
-  apiKey: Yup.string().required("API key is required"),
+  phoneNumberId: Yup.string().required("WhatsApp Number ID is required"),
+  initial_message: Yup.string().required("Initial message is required"),
+  ideal_customer_profile: Yup.string().required("Ideal customer profile is required"),
 });
 
 const Step1 = ({ formik }: { formik: any }) => (
-  <div className="space-y-4 w-full">
-    <div className="flex flex-col gap-1">
-      <label>Agent Name</label>
+  <div className="space-y-6 w-full">
+    <div className="flex flex-col gap-2">
+      <label className="font-medium text-gray-700">Agent Name</label>
       <input
         type="text"
-        placeholder="Agent Name"
+        placeholder="Enter agent name"
         {...formik.getFieldProps("name")}
-        className={`w-full p-2 border rounded ${formik.touched.name && formik.errors.name ? "border-red-500" : ""}`}
+        className={`w-full outline-blue-500 p-3 border bg-white rounded-lg ${formik.touched.name && formik.errors.name ? "border-red-500" : "border-gray-200"}`}
       />
       {formik.touched.name && formik.errors.name && (
-        <div className="text-red-500 text-sm mt-1">{formik.errors.name}</div>
+        <div className="text-red-500 text-sm">{formik.errors.name}</div>
       )}
     </div>
-    <div className="flex flex-col gap-1">
-      <label>Standard of Operation</label>
+    <div className="flex flex-col gap-2">
+      <label className="font-medium text-gray-700">Standard of Operation</label>
       <textarea
-        placeholder="Standard Operating Procedure"
+        placeholder="Describe the standard operating procedure"
         {...formik.getFieldProps("sop")}
-        className={`w-full p-2 border rounded h-32 ${formik.touched.sop && formik.errors.sop ? "border-red-500" : ""
-          }`}
+        className={`w-full p-3 outline-blue-500 border bg-white rounded-lg h-32 ${formik.touched.sop && formik.errors.sop ? "border-red-500" : "border-gray-200"}`}
       />
       {formik.touched.sop && formik.errors.sop && (
-        <div className="text-red-500 text-sm mt-1">{formik.errors.sop}</div>
+        <div className="text-red-500 text-sm">{formik.errors.sop}</div>
+      )}
+    </div>
+    <div className="flex flex-col gap-2">
+      <label className="font-medium text-gray-700">Initial Message</label>
+      <textarea
+        placeholder="Enter the initial message"
+        {...formik.getFieldProps("initial_message")}
+        className={`w-full p-3 outline-blue-500 border bg-white rounded-lg h-32 ${formik.touched.initial_message && formik.errors.initial_message ? "border-red-500" : "border-gray-200"}`}
+      />
+      {formik.touched.initial_message && formik.errors.initial_message && (
+        <div className="text-red-500 text-sm">{formik.errors.initial_message}</div>
+      )}
+    </div>
+    <div className="flex flex-col gap-2">
+      <label className="font-medium text-gray-700">Ideal Customer Profile</label>
+      <textarea
+        placeholder="Describe your ideal customer"
+        {...formik.getFieldProps("ideal_customer_profile")}
+        className={`w-full p-3 outline-blue-500 border bg-white rounded-lg h-32 ${formik.touched.ideal_customer_profile && formik.errors.ideal_customer_profile ? "border-red-500" : "border-gray-200"}`}
+      />
+      {formik.touched.ideal_customer_profile && formik.errors.ideal_customer_profile && (
+        <div className="text-red-500 text-sm">{formik.errors.ideal_customer_profile}</div>
       )}
     </div>
   </div>
 );
 
 const Step2 = ({ formik }: { formik: any }) => (
-  <div className="space-y-4 w-full max-w-md">
-    <div className="flex flex-col gap-1">
-      <label>Whatsapp Number ID</label>
+  <div className="space-y-6 w-full max-w-md">
+    <div className="flex flex-col gap-2">
+      <label className="font-medium text-gray-700">Whatsapp Number ID</label>
       <input
         type="text"
-        placeholder="WhatsApp Number ID"
-        {...formik.getFieldProps("whatsappId")}
-        className={`w-full p-2 border rounded ${formik.touched.whatsappId && formik.errors.whatsappId ? "border-red-500" : ""
-          }`}
+        placeholder="Enter WhatsApp Number ID"
+        {...formik.getFieldProps("phoneNumberId")}
+        className={`w-full p-3 outline-blue-500 border bg-white rounded-lg ${formik.touched.phoneNumberId && formik.errors.phoneNumberId ? "border-red-500" : "border-gray-200"}`}
       />
-      {formik.touched.whatsappId && formik.errors.whatsappId && (
-        <div className="text-red-500 text-sm mt-1">{formik.errors.whatsappId}</div>
+      {formik.touched.phoneNumberId && formik.errors.phoneNumberId && (
+        <div className="text-red-500 text-sm">{formik.errors.phoneNumberId}</div>
       )}
     </div>
-    <div className="flex flex-col gap-1">
-      <label>Whatsapp API Key</label>
+    <div className="flex flex-col gap-2">
+      <label className="font-medium text-gray-700">Whatsapp API Key</label>
       <input
         type="password"
-        placeholder="WhatsApp API Key"
-        {...formik.getFieldProps("apiKey")}
-        className={`w-full p-2 border rounded ${formik.touched.apiKey && formik.errors.apiKey ? "border-red-500" : ""
-          }`}
+        placeholder="Enter WhatsApp API Key"
+        {...formik.getFieldProps("accessToken")}
+        className={`w-full p-3 outline-blue-500 border bg-white rounded-lg ${formik.touched.accessToken && formik.errors.accessToken ? "border-red-500" : "border-gray-200"}`}
       />
-      {formik.touched.apiKey && formik.errors.apiKey && (
-        <div className="text-red-500 text-sm mt-1">{formik.errors.apiKey}</div>
+      {formik.touched.accessToken && formik.errors.accessToken && (
+        <div className="text-red-500 text-sm">{formik.errors.accessToken}</div>
       )}
     </div>
   </div>
 );
 
-const Step3 = ({ onDeploy }: { onDeploy: () => void }) => (
+const Step3 = ({ onDeploy, isSubmitting }: { onDeploy: () => void; isSubmitting: boolean }) => (
   <div className="text-center">
     <button
       onClick={onDeploy}
-      className="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700"
+      disabled={isSubmitting}
+      className="px-6 py-3 bg-blue-600 text-white font-medium rounded-lg hover:bg-blue-700 transition-colors disabled:bg-blue-400 flex items-center gap-2"
     >
-      Deploy Agent
+      {isSubmitting ? (
+        <>
+          <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+            <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+          </svg>
+          Deploying...
+        </>
+      ) : (
+        'Deploy Agent'
+      )}
     </button>
   </div>
 );
@@ -136,21 +167,25 @@ const CreateAgent = (): React.ReactElement => {
     initialValues: {
       sop: "",
       name: "",
-      apiKey: "",
-      whatsappId: "",
+      accessToken: "",
+      phoneNumberId: "",
+      initial_message: "",
+      ideal_customer_profile: "",
     },
     validationSchema,
     onSubmit: async (values) => {
       console.log("Deploying agent with data:", values);
       formik.setSubmitting(true);
-      await createSalesRep(
-        values.name,
-        values.sop,
-        {
-          accessToken: values.apiKey,
-          phoneNumberId: values.whatsappId,
-        }
-      );
+      await createSalesRep({
+        name: values.name,
+        sop: values.sop,
+        initial_message: values.initial_message,
+        ideal_customer_profile: values.ideal_customer_profile,
+        whatsapp: {
+          accessToken: values.accessToken,
+          phoneNumberId: values.phoneNumberId,
+        },
+      });
       formik.setSubmitting(false);
       router.push("/");
     },
@@ -161,32 +196,32 @@ const CreateAgent = (): React.ReactElement => {
       return !formik.errors.name && !formik.errors.sop && formik.touched.name && formik.touched.sop;
     }
     if (step === 2) {
-      return !formik.errors.whatsappId && !formik.errors.apiKey &&
-        formik.touched.whatsappId && formik.touched.apiKey;
+      return !formik.errors.phoneNumberId && !formik.errors.accessToken &&
+        formik.touched.phoneNumberId && formik.touched.accessToken;
     }
     return true;
   };
 
   return (
-    <div className="flex flex-col items-center pt-8 pb-8 w-full h-full">
-      <div className="text-center space-y-1 mb-8">
+    <div className="flex flex-col items-center gap-9 pt-16 pb-8 w-full h-full">
+      <div className="text-center space-y-1">
         <h1 className="mb-2 text-5xl tracking-tight font-extrabold text-gray-900">Create an Agent</h1>
         <p className="text-gray-600 text-lg">Create kick-ass ads for your business</p>
       </div>
 
       <StepIndicator currentStep={step} />
 
-      <form className="flex flex-col items-center w-full max-w-xl" onSubmit={formik.handleSubmit}>
+      <form className="flex flex-col items-center w-full max-w-2xl px-6" onSubmit={formik.handleSubmit}>
         {step === 1 && <Step1 formik={formik} />}
         {step === 2 && <Step2 formik={formik} />}
-        {step === 3 && <Step3 onDeploy={formik.handleSubmit} />}
+        {step === 3 && <Step3 onDeploy={formik.handleSubmit} isSubmitting={formik.isSubmitting} />}
 
         <div className="mt-8 space-x-4">
           {step > 1 && (
             <button
               type="button"
               onClick={() => setStep(s => s - 1)}
-              className="px-4 py-2 border rounded-lg hover:bg-gray-50"
+              className="px-6 py-3 border border-gray-200 rounded-lg hover:bg-gray-50 font-medium transition-colors"
             >
               Previous
             </button>
@@ -196,9 +231,9 @@ const CreateAgent = (): React.ReactElement => {
               type="button"
               onClick={() => setStep(s => s + 1)}
               disabled={!canProceed()}
-              className={`px-4 py-2 rounded-lg ${canProceed()
+              className={`px-6 py-3 rounded-lg font-medium transition-colors ${canProceed()
                 ? "bg-blue-600 text-white hover:bg-blue-700"
-                : "bg-gray-300 cursor-not-allowed"
+                : "bg-gray-200 text-gray-400 cursor-not-allowed"
                 }`}
             >
               Next

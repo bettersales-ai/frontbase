@@ -34,23 +34,16 @@ jobs:
           echo 'net.ipv6.conf.all.forwarding = 1' | sudo tee -a /etc/sysctl.d/99-tailscale.conf
           sudo sysctl -p /etc/sysctl.d/99-tailscale.conf
 
-      - name: Setup Tailscale
-        uses: tailscale/github-action@v3
-        with:
-          tags: tag:ci
-          version: latest
-          use-cache: true
-          oauth-secret: ${{ secrets.TS_OAUTH_SECRET }}
-          oauth-client-id: ${{ secrets.TS_OAUTH_CLIENT_ID }}
-
       - run: flyctl auth docker
         env:
           FLY_API_TOKEN: ${{ secrets.FLY_API_TOKEN }}
 
-      - name: Run ssh in background
+      - name: Run proxy in background
         run: |
-          ssh -N -L 6379:localhost:6379 -L 5432:localhost:5432 -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null admin@database &
-          echo $! > ssh.pid
+          flyctl proxy 5432 -a bettersalesai-database &
+          echo $! > proxy.pid
+        env:
+          FLY_API_TOKEN: ${{ secrets.FLY_API_TOKEN }}
 
       - name: Build and push
         uses: docker/build-push-action@v6
@@ -62,10 +55,10 @@ jobs:
           secrets: |
             "deploy=${{ secrets.DEPLOY_SECRETS }}"
 
-      - name: Stop ssh
+      - name: Stop proxy
         run: |
-          kill $(cat ssh.pid)
-          rm ssh.pid
+          kill $(cat proxy.pid)
+          rm proxy.pid
         continue-on-error: true
 
   deploy:
@@ -99,19 +92,12 @@ jobs:
           node-version: 22
           cache: "yarn"
 
-      - name: Setup Tailscale
-        uses: tailscale/github-action@v3
-        with:
-          tags: tag:ci
-          version: latest
-          use-cache: true
-          oauth-secret: ${{ secrets.TS_OAUTH_SECRET }}
-          oauth-client-id: ${{ secrets.TS_OAUTH_CLIENT_ID }}
-
-      - name: Run ssh in background
+      - name: Run proxy in background
         run: |
-          ssh -N -L 6379:localhost:6379 -L 5432:localhost:5432 -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null admin@database &
-          echo $! > ssh.pid
+          flyctl proxy 5432 -a bettersalesai-database &
+          echo $! > proxy.pid
+        env:
+          FLY_API_TOKEN: ${{ secrets.FLY_API_TOKEN }}
 
       - name: Setup secrets
         run: echo "$DEPLOY_SECRETS" > .env
@@ -123,8 +109,8 @@ jobs:
 
       - run: yarn db:migrate
 
-      - name: Stop ssh
+      - name: Stop proxy
         run: |
-          kill $(cat ssh.pid)
-          rm ssh.pid
+          kill $(cat proxy.pid)
+          rm proxy.pid
         continue-on-error: true

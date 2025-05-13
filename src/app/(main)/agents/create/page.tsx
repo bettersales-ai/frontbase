@@ -5,9 +5,12 @@ import React from "react";
 
 import { useRouter } from "next/navigation";
 
-import * as Yup from "yup";
+import { z } from "zod";
 import { useFormik } from "formik";
+import { toFormikValidationSchema } from "zod-formik-adapter";
+
 import { createSalesRep } from "./actions";
+
 
 const StepIndicator = ({ currentStep }: { currentStep: number }) => (
   <div className="mb-8 w-full max-w-3xl">
@@ -48,14 +51,14 @@ const StepIndicator = ({ currentStep }: { currentStep: number }) => (
   </div>
 );
 
-const validationSchema = Yup.object({
-  name: Yup.string().required("Agent name is required"),
-  accessToken: Yup.string().required("Access Token is required"),
-  sop: Yup.string().required("Standard operating procedure is required"),
-  phoneNumberId: Yup.string().required("WhatsApp Number ID is required"),
-  initial_message: Yup.string().required("Initial message is required"),
-  ideal_customer_profile: Yup.string().required("Ideal customer profile is required"),
-});
+const validationSchema = toFormikValidationSchema(z.object({
+  name: z.string().nonempty("Agent name is required"),
+  accessToken: z.string().nonempty("Access Token is required"),
+  sop: z.string().nonempty("Standard operating procedure is required"),
+  phoneNumberId: z.string().nonempty("WhatsApp Number ID is required"),
+  initial_message: z.string().nonempty("Initial message is required"),
+  ideal_customer_profile: z.string().nonempty("Ideal customer profile is required"),
+}));
 
 const Step1 = ({ formik }: { formik: any }) => (
   <div className="space-y-6 w-full">

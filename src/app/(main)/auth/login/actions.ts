@@ -2,6 +2,7 @@
 
 import crypto from "node:crypto";
 
+import React from "react";
 import { redirect } from "next/navigation";
 
 import { google } from "googleapis";
@@ -63,7 +64,7 @@ const generateEmailVerificationCode = async (email: string) => {
 
 export const sendEmailVerification = async (email: string) => {
   const code = await generateEmailVerificationCode(email);
-  const emailHtml = await render(<AuthOtp loginCode={code} />);
+  const emailHtml = await render(React.createElement(AuthOtp, { loginCode: code }));
 
   try {
     await mail.sendMail({

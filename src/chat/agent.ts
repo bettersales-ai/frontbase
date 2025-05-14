@@ -2,8 +2,8 @@ import OpenAI from "openai";
 import { createClient } from "redis";
 import { ChatCompletionMessage, ChatCompletionMessageParam } from "openai/resources/index";
 
-import { agentToolToTool, ToolCallEvent, TypedEventEmitter } from "./utils";
 import { SessionStatus, AgentTool, AgentResponse } from "./types";
+import { agentToolToTool, ToolCallEvent, TypedEventEmitter } from "./utils";
 
 
 const redis = createClient({
@@ -22,7 +22,7 @@ When you have concluded the chat with a customer
 append the following text: \`<END>\` at the end of your last message."
 `
 
-class AgentSession {
+export class Agent {
   private readonly openai: OpenAI;
   private readonly sessionId: string;
   private readonly historySize: number;
@@ -34,8 +34,8 @@ class AgentSession {
     this.historySize = historySize;
 
     this.openai = new OpenAI({
-      apiKey: process.env.OPENAI_API_KEY,
-      baseURL: process.env.OPENAI_API_BASE_URL,
+      apiKey: process.env.MODEL_API_KEY,
+      baseURL: process.env.MODEL_API_URL,
     });
   }
 
@@ -50,7 +50,8 @@ class AgentSession {
 
   public async initialize(systemMessage: string, tools: AgentTool[] = []): Promise<void> {
     const key = `session:${this.sessionId}`;
-    const toolsKey = `session:${this.sessionId}:tools`;
+    const toolsKey = `${key}:tools`;
+    const sessionStatusKey = `${key}:status`;
 
     await redis.set(toolsKey, JSON.stringify(tools));
 
@@ -64,8 +65,8 @@ class AgentSession {
       content: systemMessage + special_messages,
     };
 
+    await redis.set(sessionStatusKey, "active");
     await redis.rPush(key, JSON.stringify(systemMessageObj));
-    await redis.lTrim(key, 0, this.historySize);
   }
 
   private async callTool(name: string, args: Record<string, unknown>): Promise<string> {
@@ -144,14 +145,14 @@ class AgentSession {
     if (assistantMessage.tool_calls) {
       res = await this.handleToolCalls(assistantMessage);
     } else {
-      const isEnded = await this.checkSessionEnded(assistantMessage.content || "");
+      const { isEnded, message } = await this.checkSessionEnded(assistantMessage.content || "");
       if (isEnded) {
         await redis.set(`session:${this.sessionId}:status`, "ended");
       }
       res = {
         isEnded,
         type: "message",
-        message: assistantMessage.content || "",
+        message: message,
       }
     }
     return res;
@@ -184,14 +185,14 @@ class AgentSession {
     if (assistantMessage.tool_calls) {
       res = await this.handleToolCalls(assistantMessage);
     } else {
-      const isEnded = await this.checkSessionEnded(assistantMessage.content || "");
+      const { isEnded, message } = await this.checkSessionEnded(assistantMessage.content || "");
       if (isEnded) {
         await redis.set(`session:${this.sessionId}:status`, "ended");
       }
       res = {
         isEnded,
         type: "message",
-        message: assistantMessage.content || "",
+        message: message,
       }
     }
 
@@ -204,8 +205,7 @@ class AgentSession {
     if (status) {
       return status as SessionStatus;
     } else {
-      await redis.set(key, "active");
-      return "active";
+      return "unknown";
     }
   }
 
@@ -224,18 +224,21 @@ class AgentSession {
     await redis.lTrim(key, 0, this.historySize);
   }
 
-  private async checkSessionEnded(message: string): Promise<boolean> {
+  private async checkSessionEnded(message: string) {
     const key = `session:${this.sessionId}`;
 
     if (message.includes("<END>")) {
       await redis.set(key + ":status", "ended");
-      return true;
+      const cleanedText = message.replace(/<END>/g, "").trim();
+      return {
+        isEnded: true,
+        message: cleanedText,
+      }
     }
 
-    return false;
+    return {
+      isEnded: false,
+      message: message,
+    };
   }
-
 }
-
-
-export default AgentSession;

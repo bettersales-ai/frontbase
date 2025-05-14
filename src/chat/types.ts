@@ -1,6 +1,6 @@
 import { ToolCallEvent, TypedEventEmitter } from "./utils";
 
-export type SessionStatus = "active" | "ended";
+export type SessionStatus = "unknown" | "active" | "ended";
 
 export type Type = "string" | "array" | "integer" | "object" | "number" | "boolean";
 

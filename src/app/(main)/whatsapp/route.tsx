@@ -1,9 +1,12 @@
 import { type NextRequest, NextResponse } from "next/server";
 
+import { Agent } from "@/chat";
+
 import { sendMessage } from "./utils";
 import { WhatsappEvent } from "./types";
 
 const WHATSAPP_VERIFY_TOKEN = process.env.WHATSAPP_VERIFY_TOKEN;
+const WHATSAPP_SYSTEM_USER_KEY = process.env.WHATSAPP_SYSTEM_USER_KEY;
 
 
 export async function GET(req: NextRequest) {
@@ -38,19 +41,26 @@ export async function POST(req: NextRequest) {
         console.log("Message:", message);
         console.log("Business:", business);
 
-        await sendMessage({
-          to: contact!.wa_id,
-          type: "text",
-          messaging_product: "whatsapp",
-          text: {
-            preview_url: false,
-            body: "Hello from the server!",
-          },
-        }, business.phone_number_id, process.env.WHATSAPP_SYSTEM_USER_KEY!);
+        const agent = new Agent(business.phone_number_id);
+        const status = await agent.getSessionStatus();
+        if (status === "unknown") {
+          await agent.initialize("You are a helpful assistant.", []);
+        }
+
+        const res = await agent.send(message.text!.body);
+
+        if (res.type === "message") {
+          await sendMessage({
+            to: contact!.wa_id,
+            type: "text",
+            messaging_product: "whatsapp",
+            text: {
+              preview_url: false,
+              body: res.message!,
+            },
+          }, business.phone_number_id, WHATSAPP_SYSTEM_USER_KEY!);
+        }
       }
-    } else {
-      console.log("Unknown field:", change.field);
-      console.log("Change:", change);
     }
   }
 

@@ -5,6 +5,7 @@ on:
       - main
 
 env:
+  db_app: bettersalesai-database
   image: registry.fly.io/bettersalesai-kickads
 
 jobs:
@@ -40,7 +41,8 @@ jobs:
 
       - name: Run proxy in background
         run: |
-          flyctl proxy 5432 -a bettersalesai-database &
+          flyctl machine start 908024def50e98 -a ${{ env.db_app }}
+          flyctl proxy 5432 -a ${{ env.db_app }} &
           echo $! > proxy.pid
         env:
           FLY_API_TOKEN: ${{ secrets.FLY_API_TOKEN }}
@@ -94,7 +96,8 @@ jobs:
 
       - name: Run proxy in background
         run: |
-          flyctl proxy 5432 -a bettersalesai-database &
+          flyctl machine start 908024def50e98 -a ${{ env.db_app }}
+          flyctl proxy 5432 -a ${{ env.db_app }} &
           echo $! > proxy.pid
         env:
           FLY_API_TOKEN: ${{ secrets.FLY_API_TOKEN }}

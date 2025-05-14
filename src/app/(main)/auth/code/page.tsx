@@ -24,10 +24,10 @@ const VerifyCode = (): React.ReactElement => {
   };
 
   return (
-    <div className="w-full max-w-md mx-auto">
-      <div className="flex flex-col items-center gap-6 bg-white rounded-xl p-6">
+    <div className="w-full pt-8 max-w-md mx-auto">
+      <div className="flex flex-col items-center gap-6 rounded-xl p-6">
         <div className="text-center space-y-1">
-          <h1 className="mb-2 text-4xl tracking-tight font-extrabold text-gray-900">Grok My Fans</h1>
+          <h1 className="mb-2 text-4xl tracking-tight font-extrabold text-gray-900">Kick Ads</h1>
           <p className="text-gray-600 text-xs">Choose your preferred sign in method Choose your preferred sign in method</p>
         </div>
 
@@ -37,7 +37,7 @@ const VerifyCode = (): React.ReactElement => {
               type="code"
               placeholder="Enter your code"
               onChange={(e) => setCode(e.target.value)}
-              className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm text-gray-900 placeholder-gray-500 focus:ring-2 focus:ring-indigo-600 focus:border-transparent outline-none transition-all duration-200"
+              className="w-full border border-gray-300 bg-white shadow-xs rounded-lg px-3 py-2.5 text-sm text-gray-900 placeholder-gray-500 focus:ring-2 focus:ring-indigo-600 focus:border-transparent outline-none transition-all duration-200"
             />
             <button
               type="button"

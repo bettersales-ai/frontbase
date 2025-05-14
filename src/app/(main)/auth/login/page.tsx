@@ -16,10 +16,10 @@ const Login = (): React.ReactElement => {
   };
 
   return (
-    <div className="w-full max-w-md mx-auto">
+    <div className="w-full pt-8 max-w-md mx-auto">
       <div className="flex flex-col items-center gap-6 rounded-xl p-6">
         <div className="text-center space-y-1">
-          <h1 className="mb-2 text-4xl tracking-tight font-extrabold text-gray-900">Audience Flow</h1>
+          <h1 className="mb-2 text-4xl tracking-tight font-extrabold text-gray-900">Kick Ads</h1>
           <p className="text-gray-600 text-xs">Choose your preferred sign in method Choose your preferred sign in method</p>
         </div>
 

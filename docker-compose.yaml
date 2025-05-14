@@ -16,7 +16,18 @@ services:
       - "6379:6379"
     volumes:
       - redis_data:/data
+  
+  mailhog:
+    image: mailhog/mailhog
+    ports:
+      - "8025:8025"
+      - "1025:1025"
+    environment:
+      - MH_STORAGE=maildir
+    volumes:
+      - mailhog_data:/maildir
 
 volumes:
   redis_data:
+  mailhog_data:
   postgres_data:

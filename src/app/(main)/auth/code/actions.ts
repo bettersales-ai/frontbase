@@ -79,7 +79,7 @@ const handleSignUp = async (name: string, email: string) => {
     sameSite: isDev ? "lax" : "none",
   });
 
-  return redirect("/onboarding");
+  return redirect("/");
 }
 
 const handleSignIn = async (userId: string) => {
@@ -99,5 +99,5 @@ const handleSignIn = async (userId: string) => {
     sameSite: isDev ? "lax" : "none",
   });
 
-  return NextResponse.redirect("/");
+  return redirect("/");
 }

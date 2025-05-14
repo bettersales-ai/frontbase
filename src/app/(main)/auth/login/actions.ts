@@ -10,7 +10,6 @@ import { render } from "@react-email/components";
 
 import mail from "@/mail";
 import cache from "@/cache";
-import { getBaseUrl } from "@/utils";
 import AuthOtp from "@/mail/components/AuthOtp";
 
 
@@ -66,21 +65,12 @@ export const sendEmailVerification = async (email: string) => {
   const code = await generateEmailVerificationCode(email);
   const emailHtml = await render(React.createElement(AuthOtp, { loginCode: code }));
 
-  try {
-    await mail.sendMail({
-      to: email,
-      html: emailHtml,
-      subject: "Hello world",
-      from: "Acme <onboarding@resend.dev>",
-    });
+  await mail.sendMail({
+    to: email,
+    html: emailHtml,
+    subject: "Hello world",
+    from: "Acme <onboarding@resend.dev>",
+  });
 
-    const baseUrl = await getBaseUrl();
-    const url = new URL("/auth/code", baseUrl);
-    console.log("URL", url.toString());
-
-    redirect(url.toString());
-  } catch (error) {
-    console.error(error);
-    return { message: "Error sending email" }
-  }
+  redirect("/auth/code");
 }

@@ -2,8 +2,8 @@ import { type NextRequest, NextResponse } from "next/server";
 
 import { Agent } from "@/chat";
 
-import { sendMessage } from "./utils";
 import { WhatsappEvent } from "./types";
+import { sendMessage, UserConversation } from "./utils";
 
 const WHATSAPP_VERIFY_TOKEN = process.env.WHATSAPP_VERIFY_TOKEN;
 const WHATSAPP_SYSTEM_USER_KEY = process.env.WHATSAPP_SYSTEM_USER_KEY;
@@ -25,8 +25,7 @@ export async function GET(req: NextRequest) {
 
 export async function POST(req: NextRequest) {
   const body = await req.json() as WhatsappEvent;
-
-  console.log("Received webhook:", JSON.stringify(body, null, 2));
+  // console.log("Received webhook:", JSON.stringify(body, null, 2));
 
   const data = body.entry[0];
 
@@ -37,14 +36,18 @@ export async function POST(req: NextRequest) {
         const message = change.value.messages[0];
         const contact = change.value.contacts?.[0];
 
-        console.log("Contact:", contact);
-        console.log("Message:", message);
-        console.log("Business:", business);
+        // console.log("Contact:", contact);
+        // console.log("Message:", message);
+        // console.log("Business:", business);
 
-        const agent = new Agent(business.phone_number_id);
+        const conversationId = await UserConversation.getUserConversationId(
+          contact!.wa_id,
+        );
+
+        const agent = new Agent(conversationId);
         const status = await agent.getSessionStatus();
         if (status === "unknown") {
-          await agent.initialize("You are a helpful assistant.", []);
+          await agent.initialize("You are a helpful assistant. This customers want to buy something from Raven Consulting, please help", []);
         }
 
         const res = await agent.send(message.text!.body);
@@ -59,6 +62,13 @@ export async function POST(req: NextRequest) {
               body: res.message!,
             },
           }, business.phone_number_id, WHATSAPP_SYSTEM_USER_KEY!);
+        }
+
+        if (res.isEnded) {
+          // console.log("Ending conversation");
+          await UserConversation.endUserConversation(
+            contact!.wa_id,
+          );
         }
       }
     }

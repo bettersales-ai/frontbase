@@ -1,6 +1,9 @@
 import * as fs from "fs";
 import * as path from "path";
 
+import { nanoid } from "nanoid";
+import { createClient } from "redis";
+
 import { mimeToExtension } from "./types";
 import { ReplyMessage, Video, Audio, Image, Document, MediaMessage } from "./reply";
 
@@ -8,6 +11,16 @@ import { ReplyMessage, Video, Audio, Image, Document, MediaMessage } from "./rep
 const mediaRoot = "media";
 const url = "https://graph.facebook.com/v20.0";
 
+
+const redis = createClient({
+  url: process.env.REDIS_URL,
+});
+
+redis.on("error", err => console.log("Redis redis Error", err));
+
+(async () => {
+  await redis.connect();
+})();
 
 export async function sendMessage(message: ReplyMessage, whatsappNumberId: string, token: string): Promise<boolean> {
   let mes: ReplyMessage = message;
@@ -95,4 +108,23 @@ export async function uploadMedia(phoneNumberId: string, filename: string, mimeT
 
   const data = await response.json();
   return data.id;
+}
+
+
+export class UserConversation {
+  public static async getUserConversationId(userId: string): Promise<string> {
+    const res = await redis.get(`user:${userId}:conversation`);
+
+    if(!res) {
+      const id = nanoid();
+      await redis.set(`user:${userId}:conversation`, id);
+      return id;
+    }
+
+    return res;
+  }
+
+  public static async endUserConversation(userId: string): Promise<void> {
+    await redis.del(`user:${userId}:conversation`);
+  }
 }

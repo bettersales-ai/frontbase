@@ -18,9 +18,11 @@ redis.on("error", err => console.log("Redis redis Error", err));
 
 const special_messages = `
 \n\n
-When you have concluded the chat with a customer
-append the following text: \`<END>\` at the end of your last message."
-`
+When you have successfully fulfilled the customer's request qnd have
+properly concluded the conversation. append the following text:
+\`<END>\` at the end of your last message. Please do this only after
+you're confident that the customer is satisfied and the conversation
+is complete.`
 
 export class Agent {
   private readonly openai: OpenAI;
@@ -226,6 +228,8 @@ export class Agent {
 
   private async checkSessionEnded(message: string) {
     const key = `session:${this.sessionId}`;
+
+    console.log("Agent message:", message);
 
     if (message.includes("<END>")) {
       await redis.set(key + ":status", "ended");

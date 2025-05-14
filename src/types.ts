@@ -5,6 +5,7 @@ export interface IUser {
 }
 
 export interface WhatsAppCredentials {
+  phoneNumber: string;
   accessToken: string;
   phoneNumberId: string;
 }

@@ -1,0 +1,104 @@
+"use server";
+
+import { notFound, unauthorized } from "next/navigation";
+
+import { eq, and, count } from "drizzle-orm";
+
+import { getCurrentUser } from "@/utils";
+import db, { salesRepTable, conversationsTable } from "@/db";
+
+
+export const getSalesRepData = async (salesRepId: string) => {
+  const user = await getCurrentUser();
+
+  if (!user) {
+    unauthorized();
+  }
+
+  const [salesRep] = await db
+    .select()
+    .from(salesRepTable)
+    .where(
+      and(
+        eq(salesRepTable.user_id, user.id),
+        eq(salesRepTable.id, salesRepId),
+      )
+    )
+
+  if (!salesRep) {
+    notFound();
+  }
+
+  return JSON.parse(JSON.stringify(salesRep)) as typeof salesRep
+}
+
+export const getSalesRepTotalConversations = async (salesRepId: string) => {
+  const user = await getCurrentUser();
+
+  if (!user) {
+    unauthorized();
+  }
+
+  const totalConversations = await db
+    .select({ count: count(conversationsTable.id) })
+    .from(conversationsTable)
+    .where(
+      and(
+        eq(conversationsTable.user_id, user.id),
+        eq(conversationsTable.sales_rep_id, salesRepId),
+      )
+    )
+
+  return totalConversations[0].count
+}
+
+export const getSalesRepSuccessRate = async (salesRepId: string) => {
+  const user = await getCurrentUser();
+
+  if (!user) {
+    unauthorized();
+  }
+
+  const rates = await db
+    .select({
+      status: conversationsTable.status,
+      count: count(conversationsTable.status),
+    })
+    .from(conversationsTable)
+    .where(
+      and(
+        eq(conversationsTable.user_id, user.id),
+        eq(conversationsTable.sales_rep_id, salesRepId),
+      )
+    )
+    .groupBy(conversationsTable.status);
+
+  const totalSuccess = rates.filter((rate) => rate.status === "success");
+  const totalFailed = rates.filter((rate) => rate.status === "failed");
+  const totalRunning = rates.filter((rate) => rate.status === "running");
+
+  const totalConversations = totalSuccess[0].count + totalFailed[0].count + totalRunning[0].count;
+
+  return (totalSuccess[0].count / totalConversations) * 100;
+}
+
+export const getSalesRepActiveConversations = async (salesRepId: string) => {
+  const user = await getCurrentUser();
+
+  if (!user) {
+    unauthorized();
+  }
+
+  const activeConversations = await db
+    .select({ count: count(conversationsTable.id) })
+    .from(conversationsTable)
+    .where(
+      and(
+        eq(conversationsTable.user_id, user.id),
+        eq(conversationsTable.sales_rep_id, salesRepId),
+        eq(conversationsTable.status, "running"),
+      )
+    )
+
+  return activeConversations[0].count
+}

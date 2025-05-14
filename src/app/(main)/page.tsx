@@ -32,8 +32,9 @@ const Home = async (): Promise<React.JSX.Element> => {
 
       <div className="grid grid-cols-3 gap-8 px-24 w-full h-full">
         {sales.map((salesRep) => (
-          <button
+          <Link
             key={salesRep.id}
+            href={`/agents/${salesRep.id}`}
             className="bg-white border border-gray-200 shadow-sm rounded-lg h-[12rem] p-6 text-left transition-all hover:shadow-md"
           >
             <div className="h-full flex flex-col justify-between">
@@ -50,9 +51,9 @@ const Home = async (): Promise<React.JSX.Element> => {
                 <span>conversations</span>
               </div>
             </div>
-          </button>
+          </Link>
         ))}
-        <Link href="/create" className="bg-white border-2 border-dashed border-gray-300 flex flex-col justify-center items-center rounded-lg h-[12rem] transition-all hover:border-gray-400 hover:bg-gray-50">
+        <Link href="/agents/create" className="bg-white border-2 border-dashed border-gray-300 flex flex-col justify-center items-center rounded-lg h-[12rem] transition-all hover:border-gray-400 hover:bg-gray-50">
           <PlusIcon className="w-12 h-12 text-gray-400" />
           <span className="text-sm font-medium text-gray-600 mt-2">Create Sales Rep</span>
         </Link>

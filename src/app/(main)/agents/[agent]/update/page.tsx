@@ -9,7 +9,7 @@ import { z } from "zod";
 import { useFormik } from "formik";
 import { toFormikValidationSchema } from "zod-formik-adapter";
 
-import { createSalesRep } from "./actions";
+import { getSalesRep, updateSalesRep } from "./actions";
 
 
 const StepIndicator = ({ currentStep }: { currentStep: number }) => (
@@ -171,26 +171,42 @@ const Step3 = ({ onDeploy, isSubmitting }: { onDeploy: () => void; isSubmitting:
   </div>
 );
 
-const CreateAgent = (): React.ReactElement => {
-  const [step, setStep] = React.useState(1);
+interface UpdateAgentProps {
+  params: Promise<{ agent: string }>;
+}
 
+type Res = Awaited<ReturnType<typeof getSalesRep>>;
+
+const UpdateAgent = ({ params }: UpdateAgentProps) => {
   const router = useRouter();
+  const { agent } = React.use(params);
+
+  const [step, setStep] = React.useState(1);
+  const [agentData, setAgentData] = React.useState<Res | null>(null);
+
+  React.useEffect(() => {
+    (async () => {
+      const data = await getSalesRep(agent);
+      setAgentData(data);
+    })();
+  }, [agent]);
 
   const formik = useFormik({
     initialValues: {
-      sop: "",
-      name: "",
-      accessToken: "",
-      phoneNumber: "",
-      phoneNumberId: "",
-      initial_message: "",
-      ideal_customer_profile: "",
+      sop: agentData?.sop || "",
+      name: agentData?.name || "",
+      initial_message: agentData?.initial_message || "",
+      phoneNumber: agentData?.whatappCredentials?.phoneNumber || "",
+      accessToken: agentData?.whatappCredentials.accessToken || "",
+      phoneNumberId: agentData?.whatappCredentials.phoneNumberId || "",
+      ideal_customer_profile: agentData?.ideal_customer_profile || "",
     },
     validationSchema,
+    enableReinitialize: true,
     onSubmit: async (values) => {
-      console.log("Deploying agent with data:", values);
       formik.setSubmitting(true);
-      await createSalesRep({
+      await updateSalesRep({
+        id: agent,
         name: values.name,
         sop: values.sop,
         initial_message: values.initial_message,
@@ -260,4 +276,4 @@ const CreateAgent = (): React.ReactElement => {
   );
 };
 
-export default CreateAgent;
+export default UpdateAgent;

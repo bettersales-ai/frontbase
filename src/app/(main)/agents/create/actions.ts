@@ -27,6 +27,7 @@ export const createSalesRep = async (req: Request) => {
       user_id: user.id,
       whatappCredentials: req.whatsapp,
       initial_message: req.initial_message,
+      platform_id: req.whatsapp.phoneNumberId,
       ideal_customer_profile: req.ideal_customer_profile,
     }).returning();
 

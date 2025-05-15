@@ -6,8 +6,8 @@ import { google } from "googleapis";
 import { LogSnag } from "@logsnag/next/server";
 
 import cache from "@/cache";
-import db, { usersTable } from "@/db";
 import { AUTH_COOKIE_NAME } from "@/types";
+import db, { usersTable, billingTable } from "@/db";
 import { generateToken, getBaseUrl } from "@/utils";
 
 
@@ -87,6 +87,13 @@ const handleSignUp = async (request: NextRequest, name: string, email: string) =
     .values({ name, email })
     .returning();
 
+  await db
+    .insert(billingTable)
+    .values({
+      user_id: user.id,
+      credits_available: 0,
+    });
+
   await logsnag.track({
     channel: "onboarding",
     event: `${user.name} just signed up!`,
@@ -95,7 +102,7 @@ const handleSignUp = async (request: NextRequest, name: string, email: string) =
     tags: {
       method: "google",
     }
-  })
+  });
 
   const token = generateToken({
     id: user.id,

@@ -1,7 +1,7 @@
 import { nanoid } from "nanoid";
-import { pgTable, timestamp, varchar, jsonb, boolean } from "drizzle-orm/pg-core";
+import { pgTable, pgSchema, timestamp, varchar, numeric, integer, jsonb, boolean } from "drizzle-orm/pg-core";
 
-import { Message, WhatsAppCredentials } from "@/types";
+import { PaystackData, Message, WhatsAppCredentials } from "@/types";
 
 
 export const usersTable = pgTable("users", {
@@ -107,4 +107,47 @@ export const conversationsTable = pgTable("conversations", {
     .$type<"running" | "failed" | "success">()
     .notNull()
     .default("running"),
+});
+
+
+export const billingTable = pgTable("billing", {
+  credits_available: integer().notNull(),
+  id: varchar().primaryKey().$defaultFn(nanoid),
+  created_at: timestamp().notNull().defaultNow(),
+  updated_at: timestamp().notNull().defaultNow(),
+  paystack_authorization: jsonb()
+  .$type<PaystackData["data"]["authorization"]>()
+  .default({} as PaystackData["data"]["authorization"]),
+  paystack_customer_id: varchar({ length: 255 }),
+  user_id: varchar().notNull().references(() => usersTable.id),
+});
+
+export const billingHistoryTable = pgTable("billing_history", {
+  credits_bought: integer().notNull(),
+  status: varchar({ length: 255 }).notNull(),
+  reference: varchar({ length: 255 }).notNull(),
+  id: varchar().primaryKey().$defaultFn(nanoid),
+  created_at: timestamp().notNull().defaultNow(),
+  updated_at: timestamp().notNull().defaultNow(),
+  amount: numeric({ precision: 1000, scale: 2 }).notNull(),
+  user_id: varchar().notNull().references(() => usersTable.id),
+  billing_id: varchar().notNull().references(() => billingTable.id),
+});
+
+
+export const internalSchema = pgSchema("internal");
+
+export const billingPricesTable = internalSchema.table("billing_prices", {
+  id: varchar().primaryKey().$defaultFn(nanoid),
+  created_at: timestamp().notNull().defaultNow(),
+  updated_at: timestamp().notNull().defaultNow(),
+  deleted_at: timestamp(),
+  credits: integer().notNull(),
+  name: varchar({ length: 255 }).notNull(),
+  order: integer().notNull().unique(),
+  price: numeric({ precision: 1000, scale: 2 }).notNull(),
+  features: jsonb()
+    .$type<string[]>()
+    .notNull()
+    .default([]),
 });

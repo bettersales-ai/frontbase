@@ -2,14 +2,29 @@ import React from "react";
 
 import Link from "next/link";
 
+import { eq } from "drizzle-orm";
 import { Coins, CircleUserRound } from "lucide-react";
 import { Menu, MenuButton, MenuItem, MenuItems } from "@headlessui/react";
 
+import db, { billingTable } from "@/db";
 import { getCurrentUser } from "@/utils";
 
 
 const NavBar = async (): Promise<React.ReactElement> => {
+  let credits = NaN;
   const user = await getCurrentUser();
+
+  if (user) {
+    const [billing] = await db
+      .select()
+      .from(billingTable)
+      .where(eq(billingTable.user_id, user.id));
+
+    if (billing) {
+      credits = billing.credits_available;
+    }
+  }
+
 
   return (
     <nav className="flex items-center justify-between w-full px-16 py-8">
@@ -28,7 +43,7 @@ const NavBar = async (): Promise<React.ReactElement> => {
         </Link>
         <Link href="/billing" className="px-3 py-2 flex gap-2.5 items-center text-sm text-gray-500 font-semibold rounded-lg hover:bg-gray-200">
           <Coins className="w-5 h-5 text-gray-500" />
-          118
+          {!Number.isNaN(credits) && credits.toLocaleString()}
         </Link>
 
         {user ? (

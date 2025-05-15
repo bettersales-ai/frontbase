@@ -11,7 +11,6 @@ import db, { conversationsTable, contactsTable, salesRepTable } from "@/db";
 
 
 const Conversations = async (): Promise<React.ReactElement> => {
-
   const user = await getCurrentUser();
   if (!user) {
     unauthorized();

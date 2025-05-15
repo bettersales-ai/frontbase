@@ -7,9 +7,9 @@ import { eq } from "drizzle-orm";
 import { LogSnag } from "@logsnag/next/server";
 
 import cache from "@/cache";
-import db, { usersTable } from "@/db";
 import { generateToken } from "@/utils";
 import { AUTH_COOKIE_NAME } from "@/types";
+import db, { usersTable, billingTable } from "@/db";
 
 
 const LOGSNAG_TOKEN = process.env.LOGSNAG_TOKEN || "";
@@ -62,7 +62,14 @@ const handleSignUp = async (name: string, email: string) => {
     tags: {
       method: "google",
     }
-  })
+  });
+
+    await db
+      .insert(billingTable)
+      .values({
+        user_id: user.id,
+        credits_available: 0,
+      });
 
   const token = generateToken({
     id: user.id,

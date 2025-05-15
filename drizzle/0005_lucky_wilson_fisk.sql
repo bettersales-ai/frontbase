@@ -1,1 +1,0 @@
-ALTER TABLE "sales_rep" ADD COLUMN "platform_id" varchar(255) NOT NULL;

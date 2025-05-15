@@ -1,5 +1,5 @@
 {
-  "id": "7afedc69-d701-4221-a334-f06289b8a95e",
+  "id": "1b3b9808-6eb1-44b3-b232-bbaa0992d94e",
   "prevId": "df90b181-6e6e-449b-8fda-0f20c2f4a164",
   "version": "7",
   "dialect": "postgresql",
@@ -363,7 +363,8 @@
           "name": "platform_id",
           "type": "varchar(255)",
           "primaryKey": false,
-          "notNull": true
+          "notNull": true,
+          "default": "''"
         },
         "initial_message": {
           "name": "initial_message",

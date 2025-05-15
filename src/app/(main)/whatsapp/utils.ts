@@ -1,11 +1,14 @@
 import * as fs from "fs";
 import * as path from "path";
 
-import { nanoid } from "nanoid";
+import { eq } from "drizzle-orm";
 import { createClient } from "redis";
 
-import { mimeToExtension } from "./types";
+import db, { contactsTable, conversationsTable, salesRepTable } from "@/db";
+
+import { Contact, ContactConversation, Metadata, mimeToExtension } from "./types";
 import { ReplyMessage, Video, Audio, Image, Document, MediaMessage } from "./reply";
+import { Message } from "@/types";
 
 
 const mediaRoot = "media";
@@ -112,19 +115,122 @@ export async function uploadMedia(phoneNumberId: string, filename: string, mimeT
 
 
 export class UserConversation {
-  public static async getUserConversationId(userId: string): Promise<string> {
-    const res = await redis.get(`user:${userId}:conversation`);
+  private static nullValue = "null";
 
-    if(!res) {
-      const id = nanoid();
-      await redis.set(`user:${userId}:conversation`, id);
-      return id;
+  public static async getSalesRep(metadata: Metadata) {
+    const [salesRep] = await db
+      .select()
+      .from(salesRepTable)
+      .where(eq(salesRepTable.platform_id, metadata.phone_number_id));
+
+    if (!salesRep) {
+      throw new Error("Sales rep does not exist");
     }
 
-    return res;
+    return salesRep;
   }
 
-  public static async endUserConversation(userId: string): Promise<void> {
-    await redis.del(`user:${userId}:conversation`);
+  public static async addMessageToConversation(conversationId: string, sender: Message["sender"], message: string) {
+    const [conversation] = await db
+      .select()
+      .from(conversationsTable)
+      .where(eq(conversationsTable.id, conversationId))
+
+    if (!conversation) {
+      throw new Error("Conversation does not exist");
+    }
+
+    await db
+      .update(conversationsTable)
+      .set({
+        messages: [
+          ...conversation.messages,
+          {
+            sender,
+            type: "text",
+            data: message,
+            timestamp: Date.now(),
+          }
+        ]
+      })
+      .where(eq(conversationsTable.id, conversationId));
+  }
+
+  public static async getUserConversationId(contact: Contact, user_id: string, sales_rep: string) {
+    const key = `contacts:${contact.wa_id}:conversation`;
+
+    const data = await redis.get(key);
+
+    // If this does not exist, then this is a new contact
+    // If it exists value in null, then it previously had a convo
+    if (!data) {
+      const [newContact] = await db
+        .insert(contactsTable)
+        .values({
+          name: contact.profile.name,
+          whatsapp: contact.wa_id,
+          user_id,
+        }).returning();
+
+      const [conversation] = await db
+        .insert(conversationsTable)
+        .values({
+          user_id,
+          sales_rep_id: sales_rep,
+          contact_id: newContact.id,
+        }).returning();
+
+      await redis.set(key, JSON.stringify({
+        contactId: newContact.id,
+        currentConversation: conversation.id,
+      } as ContactConversation));
+
+      return conversation;
+    }
+
+    const contactConversation = JSON.parse(data) as ContactConversation;
+    if (contactConversation.currentConversation == UserConversation.nullValue) {
+      const [conversation] = await db
+        .insert(conversationsTable)
+        .values({
+          user_id,
+          sales_rep_id: sales_rep,
+          contact_id: contactConversation.contactId,
+        }).returning();
+
+      contactConversation.currentConversation = conversation.id;
+      await redis.set(key, JSON.stringify(contactConversation));
+      return conversation;
+    } else {
+      const [conversation] = await db
+        .select()
+        .from(conversationsTable)
+        .where(eq(conversationsTable.id, contactConversation.currentConversation));
+
+      if (!conversation) {
+        throw new Error(`Conversation ${contactConversation.currentConversation} does not exist`);
+      }
+
+      return conversation;
+    }
+  }
+
+  public static async endUserConversation(userId: string, status: "failed" | "success"): Promise<void> {
+    const key = `contacts:${userId}:conversation`;
+    const data = await redis.get(key);
+
+    if (!data) {
+      throw new Error("Contact has no conversation");
+    }
+
+    const contactConversation = JSON.parse(data) as ContactConversation;
+
+    await db
+      .update(conversationsTable)
+      .set({ status })
+      .where(eq(conversationsTable.id, contactConversation.currentConversation));
+
+    contactConversation.currentConversation = UserConversation.nullValue;
+    await redis.set(`user:${userId}:conversation`, JSON.stringify(contactConversation));
   }
 }

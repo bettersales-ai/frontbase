@@ -12,37 +12,37 @@ export type MessageType =
     // | "unknown"
     | "video";
 
-interface Text {
+export interface Text {
     body: string;
 }
 
-interface Audio {
+export interface Audio {
     id: string;
     sha256: string;
     voice: boolean;
     mime_type: string;
 }
 
-interface Video {
+export interface Video {
     id: string;
     sha256: string;
     mime_type: string;
 }
 
-interface Image {
+export interface Image {
     id: string;
     sha256: string;
     mime_type: string;
 }
 
-interface Document {
+export interface Document {
     id: string;
     sha256: string;
     filename: string;
     mime_type: string;
 }
 
-interface MessageEvent {
+export interface MessageEvent {
     id: string;
     timestamp: string;
     type: MessageType;
@@ -55,37 +55,37 @@ interface MessageEvent {
     document?: Document;
 }
 
-interface Profile {
+export interface Profile {
     name: string;
 }
 
-interface Contact {
+export interface Contact {
     wa_id: string;
     profile: Profile;
 }
 
-interface Metadata {
+export interface Metadata {
     phone_number_id: string;
     display_phone_number: string;
 }
 
-interface Origin {
+export interface Origin {
     type: string;
 }
 
-interface Conversation {
+export interface Conversation {
     id: string;
     origin: Origin;
     expiration_timestamp?: string;
 }
 
-interface Pricing {
+export interface Pricing {
     billable: boolean;
     category: string;
     pricing_model: string;
 }
 
-interface Status {
+export interface Status {
     id: string;
     status: string;
     timestamp: string;
@@ -94,7 +94,7 @@ interface Status {
     conversation?: Conversation;
 }
 
-interface Value {
+export interface Value {
     metadata: Metadata;
     messaging_product: string; // Default value "whatsapp" cannot be enforced in an interface
     statuses?: Status[];
@@ -102,12 +102,12 @@ interface Value {
     messages?: MessageEvent[];
 }
 
-interface Change {
+export interface Change {
     field: string;
     value: Value;
 }
 
-interface Entry {
+export interface Entry {
     id: string;
     changes: Change[];
 }
@@ -122,6 +122,12 @@ export interface Message {
     type: MessageType;
     message: MessageEvent;
     contacts: Contact[];
+}
+
+
+export interface ContactConversation {
+  contactId: string;
+  currentConversation: string;
 }
 
 

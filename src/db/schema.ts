@@ -28,6 +28,8 @@ export const salesRepTable = pgTable("sales_rep", {
   name: varchar({ length: 255 }).notNull(),
   sop: varchar({ length: 1000 }).notNull(),
 
+  platform_id: varchar({ length: 255 }).notNull(),
+
   initial_message: varchar({ length: 255 }).notNull().default(""),
   ideal_customer_profile: varchar({ length: 255 }).notNull().default(""),
 

@@ -36,6 +36,13 @@
       "when": 1747069499998,
       "tag": "0004_tough_lilandra",
       "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "7",
+      "when": 1747268312380,
+      "tag": "0005_lucky_wilson_fisk",
+      "breakpoints": true
     }
   ]
 }

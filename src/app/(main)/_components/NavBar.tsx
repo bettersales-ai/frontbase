@@ -14,9 +14,10 @@ const NavBar = async (): Promise<React.ReactElement> => {
   return (
     <nav className="flex flex-row-reverse items-center justify-between w-full px-16 py-8">
       <div className="flex items-center gap-2">
-        <Link href="/products" className="px-3 py-2 text-sm font-semibold rounded-lg text-gray-500 hover:bg-gray-200">
+        {/* Disabling this feature for now */}
+        {/* <Link href="/products" className="px-3 py-2 text-sm font-semibold rounded-lg text-gray-500 hover:bg-gray-200">
           Products
-        </Link>
+        </Link> */}
         <Link href="/conversations" className="px-3 py-2 text-sm font-semibold rounded-lg text-gray-500 hover:bg-gray-200">
           Conversations
         </Link>
@@ -36,11 +37,12 @@ const NavBar = async (): Promise<React.ReactElement> => {
                   Logout
                 </button>
               </MenuItem>
-              <MenuItem>
+              {/* Disabling this feature for now */}
+              {/* <MenuItem>
                 <button className="text-left flex w-full items-center gap-2 rounded-lg px-3 py-1.5">
                   Export Customers
                 </button>
-              </MenuItem>
+              </MenuItem> */}
             </MenuItems>
           </Menu>
         ) : (

@@ -23,7 +23,14 @@ export async function GET(req: NextRequest) {
   }
 }
 
-export async function POST(req: NextRequest) {
+interface RouteContext {
+  params: Promise<{
+    agent: string;
+  }>
+}
+
+export async function POST(req: NextRequest, { params }: RouteContext) {
+  const { agent: agentId } = await params;
   const body = await req.json() as WhatsappEvent;
   // console.log("Received webhook:", JSON.stringify(body, null, 2));
 
@@ -40,11 +47,9 @@ export async function POST(req: NextRequest) {
         // console.log("Message:", message);
         // console.log("Business:", business);
 
-        const salesRep = await UserConversation.getSalesRep(business);
         const conversation = await UserConversation.getUserConversationId(
           contact,
-          salesRep.user_id,
-          salesRep.id,
+          agentId,
         );
 
         await UserConversation.addMessageToConversation(
@@ -66,7 +71,7 @@ export async function POST(req: NextRequest) {
             conversation.id,
             "agent",
             res.message!,
-          )
+          );
           await sendMessage({
             to: contact!.wa_id,
             type: "text",

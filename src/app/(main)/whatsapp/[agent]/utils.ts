@@ -4,11 +4,11 @@ import * as path from "path";
 import { eq } from "drizzle-orm";
 import { createClient } from "redis";
 
-import db, { contactsTable, conversationsTable, salesRepTable } from "@/db";
+import db, { contactsTable, billingTable, conversationsTable, salesRepTable } from "@/db";
 
-import { Contact, ContactConversation, Metadata, mimeToExtension } from "./types";
-import { ReplyMessage, Video, Audio, Image, Document, MediaMessage } from "./reply";
 import { Message } from "@/types";
+import { Contact, ContactConversation, mimeToExtension } from "./types";
+import { ReplyMessage, Video, Audio, Image, Document, MediaMessage } from "./reply";
 
 
 const mediaRoot = "media";
@@ -117,14 +117,27 @@ export async function uploadMedia(phoneNumberId: string, filename: string, mimeT
 export class UserConversation {
   private static nullValue = "null";
 
-  public static async getSalesRep(metadata: Metadata) {
+  private static async getSalesRep(salesRepId: string) {
     const [salesRep] = await db
       .select()
       .from(salesRepTable)
-      .where(eq(salesRepTable.platform_id, metadata.phone_number_id));
+      .where(eq(salesRepTable.id, salesRepId));
 
     if (!salesRep) {
       throw new Error("Sales rep does not exist");
+    }
+
+    const [billing] = await db
+      .select()
+      .from(billingTable)
+      .where(eq(billingTable.user_id, salesRep.user_id));
+
+    if (!billing) {
+      throw new Error("Billing does not exist");
+    }
+
+    if (billing.credits_available <= 0) {
+      throw new Error("User does not have enough credits");
     }
 
     return salesRep;
@@ -156,10 +169,12 @@ export class UserConversation {
       .where(eq(conversationsTable.id, conversationId));
   }
 
-  public static async getUserConversationId(contact: Contact, user_id: string, sales_rep: string) {
+  public static async getUserConversationId(contact: Contact, sales_rep: string) {
     const key = `contacts:${contact.wa_id}:conversation`;
 
     const data = await redis.get(key);
+
+    const salesRep = await UserConversation.getSalesRep(sales_rep);
 
     // If this does not exist, then this is a new contact
     // If it exists value in null, then it previously had a convo
@@ -169,13 +184,13 @@ export class UserConversation {
         .values({
           name: contact.profile.name,
           whatsapp: contact.wa_id,
-          user_id,
+          user_id: salesRep.user_id,
         }).returning();
 
       const [conversation] = await db
         .insert(conversationsTable)
         .values({
-          user_id,
+          user_id: salesRep.user_id,
           sales_rep_id: sales_rep,
           contact_id: newContact.id,
         }).returning();
@@ -193,8 +208,8 @@ export class UserConversation {
       const [conversation] = await db
         .insert(conversationsTable)
         .values({
-          user_id,
           sales_rep_id: sales_rep,
+          user_id: salesRep.user_id,
           contact_id: contactConversation.contactId,
         }).returning();
 
@@ -222,6 +237,25 @@ export class UserConversation {
     if (!data) {
       throw new Error("Contact has no conversation");
     }
+
+    // deduct one credit from the user
+    const [billing] = await db
+      .select()
+      .from(billingTable)
+      .where(eq(billingTable.user_id, userId));
+
+    if (!billing) {
+      throw new Error("Billing does not exist");
+    }
+
+    if (billing.credits_available <= 0) {
+      throw new Error("User does not have enough credits");
+    }
+
+    await db
+      .update(billingTable)
+      .set({ credits_available: billing.credits_available - 1 })
+      .where(eq(billingTable.user_id, userId));
 
     const contactConversation = JSON.parse(data) as ContactConversation;
 

@@ -4,8 +4,6 @@ import React from "react";
 
 import dynamic from "next/dynamic";
 
-// import NewBilling from "./_sections/NewBilling";
-
 import CurrentBilling from "./_sections/CurrentBilling";
 const NewBilling = dynamic(() => import( "./_sections/NewBilling"), {ssr: false});
 

@@ -11,7 +11,8 @@
     "db:generate": "drizzle-kit generate",
     "jobs": "npx tsx ./src/jobs/worker.ts",
     "db:install": "yarn install --production=false",
-    "mail:dev": "email dev -p 7000 -d ./src/mail/components"
+    "mail:dev": "email dev -p 7000 -d ./src/mail/components",
+    "db:seed": "for i in $(find src/seed/ -iname \"*.ts\" -type f); do yarn tsx \"$i\"; done"
   },
   "dependencies": {
     "@headlessui/react": "^2.2.2",

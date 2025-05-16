@@ -8,6 +8,9 @@ env:
   db_app: bettersalesai-database
   image: registry.fly.io/bettersalesai-kickads
 
+concurrency:
+  group: deploy
+
 jobs:
   build:
     name: Build docker image

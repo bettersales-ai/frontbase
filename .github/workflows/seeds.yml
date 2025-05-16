@@ -1,0 +1,56 @@
+name: Seed Database
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - "src/seed/**"
+
+env:
+  db_app: bettersalesai-database
+  image: registry.fly.io/bettersalesai-kickads
+
+concurrency:
+  group: deploy
+
+jobs:
+  seeds:
+    name: Seed database
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Flyctl
+        uses: superfly/flyctl-actions/setup-flyctl@master
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: "yarn"
+
+      - name: Run proxy in background
+        run: |
+          flyctl machine start 908024def50e98 -a ${{ env.db_app }}
+          flyctl proxy 5432 -a ${{ env.db_app }} &
+          echo $! > proxy.pid
+        env:
+          FLY_API_TOKEN: ${{ secrets.FLY_API_TOKEN }}
+
+      - name: Setup secrets
+        run: echo "$DEPLOY_SECRETS" > .env
+        env:
+          DEPLOY_SECRETS: ${{ secrets.DEPLOY_SECRETS }}
+
+      - name: Install dependencies
+        run : yarn install --production=false
+
+      - name: Run seeds
+        run: yarn db:seed
+
+      - name: Stop proxy
+        run: |
+          kill $(cat proxy.pid)
+          rm proxy.pid
+        continue-on-error: true

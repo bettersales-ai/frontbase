@@ -200,7 +200,11 @@ export class UserConversation {
         currentConversation: conversation.id,
       } as ContactConversation));
 
-      return conversation;
+      return {
+        contact,
+        salesRep,
+        conversation,
+      };
     }
 
     const contactConversation = JSON.parse(data) as ContactConversation;
@@ -215,7 +219,11 @@ export class UserConversation {
 
       contactConversation.currentConversation = conversation.id;
       await redis.set(key, JSON.stringify(contactConversation));
-      return conversation;
+      return {
+        contact,
+        salesRep,
+        conversation,
+      };
     } else {
       const [conversation] = await db
         .select()
@@ -226,7 +234,11 @@ export class UserConversation {
         throw new Error(`Conversation ${contactConversation.currentConversation} does not exist`);
       }
 
-      return conversation;
+      return {
+        contact,
+        salesRep,
+        conversation,
+      };
     }
   }
 

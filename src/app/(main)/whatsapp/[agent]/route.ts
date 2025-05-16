@@ -6,7 +6,6 @@ import { WhatsappEvent } from "./types";
 import { sendMessage, UserConversation } from "./utils";
 
 const WHATSAPP_VERIFY_TOKEN = process.env.WHATSAPP_VERIFY_TOKEN;
-const WHATSAPP_SYSTEM_USER_KEY = process.env.WHATSAPP_SYSTEM_USER_KEY;
 
 
 export async function GET(req: NextRequest) {
@@ -47,7 +46,7 @@ export async function POST(req: NextRequest, { params }: RouteContext) {
         // console.log("Message:", message);
         // console.log("Business:", business);
 
-        const conversation = await UserConversation.getUserConversationId(
+        const {conversation, salesRep } = await UserConversation.getUserConversationId(
           contact,
           agentId,
         );
@@ -80,7 +79,7 @@ export async function POST(req: NextRequest, { params }: RouteContext) {
               preview_url: false,
               body: res.message!,
             },
-          }, business.phone_number_id, WHATSAPP_SYSTEM_USER_KEY!);
+          }, business.phone_number_id, salesRep.whatappCredentials.accessToken);
         }
 
         if (res.isEnded) {

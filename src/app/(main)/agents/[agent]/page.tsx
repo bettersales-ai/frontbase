@@ -1,9 +1,8 @@
 import React from "react";
 
-import Link from "next/link";
-
 import { format } from "date-fns";
 
+import Actions from "./_components/Actions";
 import { getSalesRepActiveConversations, getSalesRepData, getSalesRepSuccessRate, getSalesRepTotalConversations } from "./actions";
 
 
@@ -18,8 +17,10 @@ const AgentPage: React.FC<AgentPageProps> = async ({ params }) => {
 
   const agentData = await getSalesRepData(agent);
 
-  const totalConversations = await getSalesRepTotalConversations(agent);
+  console.log(JSON.stringify(agentData, null, 2));
+
   const successRate = await getSalesRepSuccessRate(agent);
+  const totalConversations = await getSalesRepTotalConversations(agent);
   const activeConversations = await getSalesRepActiveConversations(agent);
 
   return (
@@ -43,11 +44,11 @@ const AgentPage: React.FC<AgentPageProps> = async ({ params }) => {
         </div>
       </div>
 
-      <div className="flex justify-center items-center w-full gap-2">
-        <Link className="hover:bg-gray-200 px-4 py-1 rounded-lg" href="/">See Conversations</Link>
-        <Link className="hover:bg-gray-200 px-4 py-1 rounded-lg" href={`/agents/${agent}/update`}>Edit Sales rep</Link>
-        <Link className="hover:bg-gray-200 px-4 py-1 rounded-lg" href="/">Deactivate</Link>
-      </div>
+      <Actions
+        id={agent}
+        name={agentData.name}
+        currentStatus={agentData.is_active}
+      />
 
       <div className="flex flex-col gap-8 px-24 mt-8 w-[80%]">
         <div className="bg-white border border-gray-200 rounded-lg p-6 flex flex-col gap-2">

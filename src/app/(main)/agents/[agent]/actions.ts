@@ -1,5 +1,6 @@
 "use server";
 
+import { revalidatePath } from "next/cache";
 import { notFound, unauthorized } from "next/navigation";
 
 import { eq, and, count } from "drizzle-orm";
@@ -73,6 +74,10 @@ export const getSalesRepSuccessRate = async (salesRepId: string) => {
     )
     .groupBy(conversationsTable.status);
 
+  if (rates.length === 0) {
+    return 0;
+  }
+  
   const totalSuccess = rates.filter((rate) => rate.status === "success");
   const totalFailed = rates.filter((rate) => rate.status === "failed");
   const totalRunning = rates.filter((rate) => rate.status === "running");
@@ -101,4 +106,25 @@ export const getSalesRepActiveConversations = async (salesRepId: string) => {
     )
 
   return activeConversations[0].count
+}
+
+
+export const updateSalesRepStatus = async (id: string, status: boolean) => {
+  const user = await getCurrentUser();
+
+  if (!user) {
+    unauthorized();
+  }
+
+  await db
+    .update(salesRepTable)
+    .set({ is_active: status })
+    .where(
+      and(
+        eq(salesRepTable.user_id, user.id),
+        eq(salesRepTable.id, id),
+      )
+    )
+  
+  revalidatePath(`/agents/${id}`);
 }

@@ -1,14 +1,13 @@
 import React from "react";
 
 import Link from "next/link";
+import { unauthorized } from "next/navigation";
 
+import { eq, desc, count } from "drizzle-orm";
 import { PlusIcon, Power } from "lucide-react";
 
-import { eq, desc } from "drizzle-orm";
-
-import db, { salesRepTable } from "@/db";
 import { getCurrentUser } from "@/utils";
-import { unauthorized } from "next/navigation";
+import db, { salesRepTable, conversationsTable } from "@/db";
 
 
 const Home = async (): Promise<React.JSX.Element> => {
@@ -18,9 +17,17 @@ const Home = async (): Promise<React.JSX.Element> => {
   }
 
   const sales = await db
-    .select()
+    .select({
+      id: salesRepTable.id,
+      sop: salesRepTable.sop,
+      name: salesRepTable.name,
+      is_active: salesRepTable.is_active,
+      conversation_count: count(conversationsTable.id),
+    })
     .from(salesRepTable)
     .where(eq(salesRepTable.user_id, user.id))
+    .leftJoin(conversationsTable, eq(salesRepTable.id, conversationsTable.sales_rep_id))
+    .groupBy(salesRepTable.id)
     .orderBy(desc(salesRepTable.created_at))
 
   return (
@@ -47,7 +54,7 @@ const Home = async (): Promise<React.JSX.Element> => {
               </div>
               <div className="flex items-center gap-1 text-xs text-gray-500">
                 {/* TODO: Conversation count <span>{salesRep.conversation_count}</span> */}
-                <span>0</span>
+                <span>{salesRep.conversation_count}</span>
                 <span>conversations</span>
               </div>
             </div>

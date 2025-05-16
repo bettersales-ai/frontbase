@@ -222,17 +222,6 @@ const UpdateAgent = ({ params }: UpdateAgentProps) => {
     },
   });
 
-  const canProceed = () => {
-    if (step === 1) {
-      return !formik.errors.name && !formik.errors.sop && formik.touched.name && formik.touched.sop;
-    }
-    if (step === 2) {
-      return !formik.errors.phoneNumberId && !formik.errors.accessToken &&
-        formik.touched.phoneNumberId && formik.touched.accessToken;
-    }
-    return true;
-  };
-
   return (
     <div className="flex flex-col items-center gap-9 pt-16 pb-8 w-full h-full">
       <div className="text-center space-y-1">
@@ -261,11 +250,7 @@ const UpdateAgent = ({ params }: UpdateAgentProps) => {
             <button
               type="button"
               onClick={() => setStep(s => s + 1)}
-              disabled={!canProceed()}
-              className={`px-6 py-3 rounded-lg font-medium transition-colors ${canProceed()
-                ? "bg-blue-600 text-white hover:bg-blue-700"
-                : "bg-gray-200 text-gray-400 cursor-not-allowed"
-                }`}
+              className={`px-6 py-3 rounded-lg font-medium transition-colors bg-blue-600 text-white hover:bg-blue-700"}`}
             >
               Next
             </button>

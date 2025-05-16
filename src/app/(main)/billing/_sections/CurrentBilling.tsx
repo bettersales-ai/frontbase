@@ -2,8 +2,6 @@
 
 import React from "react";
 
-// import Link from "next/link";
-
 import { getBillingInfo } from "../actions";
 
 type Res = Awaited<ReturnType<typeof getBillingInfo>>;

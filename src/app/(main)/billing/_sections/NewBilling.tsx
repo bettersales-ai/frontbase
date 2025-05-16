@@ -14,7 +14,7 @@ type CurrentUser = Awaited<ReturnType<typeof getCurrentUser>>;
 type CreditPack = Awaited<ReturnType<typeof getBillingPrices>>[number];
 
 const config = {
-  publicKey: "pk_test_c6a91cd224405d3c3544133c5c5628335fce5d37",
+  publicKey: process.env.NEXT_PUBLIC_PAYSTACK_KEY!,
 };
 
 interface NewBillingProps {

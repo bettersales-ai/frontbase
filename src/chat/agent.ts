@@ -219,7 +219,7 @@ export class Agent {
       .map(item => JSON.parse(item) as ChatCompletionMessageParam);
   }
 
-  private async addMessageToHistory(message: ChatCompletionMessageParam): Promise<void> {
+  public async addMessageToHistory(message: ChatCompletionMessageParam): Promise<void> {
     const key = `session:${this.sessionId}`;
 
     await redis.rPush(key, JSON.stringify(message));

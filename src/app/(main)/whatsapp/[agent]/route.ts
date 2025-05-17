@@ -40,7 +40,7 @@ export async function POST(req: NextRequest, { params }: RouteContext) {
         const contact = change.value.contacts![0];
 
 
-        const {conversation, salesRep } = await UserConversation.getUserConversationId(
+        const { isNewConversation, conversation, salesRep } = await UserConversation.getUserConversationId(
           contact,
           agentId,
         );
@@ -54,7 +54,32 @@ export async function POST(req: NextRequest, { params }: RouteContext) {
         const agent = new Agent(conversation.id);
         const status = await agent.getSessionStatus();
         if (status === "unknown") {
-          await agent.initialize("You are a helpful assistant. This customers want to buy something from Raven Consulting, please help", []);
+          await agent.initialize(salesRep.sop, []);
+        }
+
+        if (isNewConversation) {
+          await agent.addMessageToHistory({
+            role: "user",
+            content: salesRep.initial_message,
+          });
+
+          await UserConversation.addMessageToConversation(
+            conversation.id,
+            "agent",
+            salesRep.initial_message,
+          );
+
+          await sendMessage({
+            to: contact!.wa_id,
+            type: "text",
+            messaging_product: "whatsapp",
+            text: {
+              preview_url: false,
+              body: salesRep.initial_message,
+            },
+          }, business.phone_number_id, salesRep.whatappCredentials.accessToken);
+
+          return new NextResponse("OK", { status: 200 });
         }
 
         const res = await agent.send(message.text!.body);
@@ -65,6 +90,7 @@ export async function POST(req: NextRequest, { params }: RouteContext) {
             "agent",
             res.message!,
           );
+
           await sendMessage({
             to: contact!.wa_id,
             type: "text",
@@ -79,7 +105,8 @@ export async function POST(req: NextRequest, { params }: RouteContext) {
         if (res.isEnded) {
           // console.log("Ending conversation");
           await UserConversation.endUserConversation(
-            contact!.wa_id,
+            contact,
+            salesRep,
             // FIXME: Change this to the actual result
             "success",
           );

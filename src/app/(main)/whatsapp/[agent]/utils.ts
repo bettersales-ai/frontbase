@@ -1,7 +1,7 @@
 import * as fs from "fs";
 import * as path from "path";
 
-import { eq } from "drizzle-orm";
+import { eq,  type InferSelectModel } from "drizzle-orm";
 import { createClient } from "redis";
 
 import db, { contactsTable, billingTable, conversationsTable, salesRepTable } from "@/db";
@@ -204,6 +204,7 @@ export class UserConversation {
         contact,
         salesRep,
         conversation,
+        isNewConversation: true,
       };
     }
 
@@ -223,6 +224,7 @@ export class UserConversation {
         contact,
         salesRep,
         conversation,
+        isNewConversation: true,
       };
     } else {
       const [conversation] = await db
@@ -238,12 +240,13 @@ export class UserConversation {
         contact,
         salesRep,
         conversation,
+        isNewConversation: false,
       };
     }
   }
 
-  public static async endUserConversation(userId: string, status: "failed" | "success"): Promise<void> {
-    const key = `contacts:${userId}:conversation`;
+  public static async endUserConversation(contact: Contact, salesRep: InferSelectModel<typeof salesRepTable>, status: "failed" | "success"): Promise<void> {
+    const key = `contacts:${contact.wa_id}:conversation`;
     const data = await redis.get(key);
 
     if (!data) {
@@ -254,7 +257,7 @@ export class UserConversation {
     const [billing] = await db
       .select()
       .from(billingTable)
-      .where(eq(billingTable.user_id, userId));
+      .where(eq(billingTable.user_id, salesRep.user_id));
 
     if (!billing) {
       throw new Error("Billing does not exist");
@@ -267,7 +270,7 @@ export class UserConversation {
     await db
       .update(billingTable)
       .set({ credits_available: billing.credits_available - 1 })
-      .where(eq(billingTable.user_id, userId));
+      .where(eq(billingTable.user_id, salesRep.user_id));
 
     const contactConversation = JSON.parse(data) as ContactConversation;
 
@@ -277,6 +280,6 @@ export class UserConversation {
       .where(eq(conversationsTable.id, contactConversation.currentConversation));
 
     contactConversation.currentConversation = UserConversation.nullValue;
-    await redis.set(`user:${userId}:conversation`, JSON.stringify(contactConversation));
+    await redis.set(`contacts:${contact.wa_id}:conversation`, JSON.stringify(contactConversation));
   }
 }

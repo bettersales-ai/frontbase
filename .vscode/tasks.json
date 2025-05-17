@@ -1,0 +1,25 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "Start ngrok tunnel",
+      "type": "shell",
+      "command": "ngrok http 3000",
+      "problemMatcher": {
+        "pattern": {
+          "regexp": "^.*$"
+        }
+      }
+    },
+    {
+      "label": "Start Dev Server",
+      "type": "shell",
+      "command": "yarn dev",
+      "problemMatcher": {
+        "pattern": {
+          "regexp": "^.*$"
+        }
+      }
+    }
+  ]
+}

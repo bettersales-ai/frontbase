@@ -14,10 +14,8 @@ export async function GET(req: NextRequest) {
   const hubVerifyToken = req.nextUrl.searchParams.get("hub.verify_token");
 
   if (hubMode == "subscribe" && hubVerifyToken == WHATSAPP_VERIFY_TOKEN) {
-    console.log("Webhook verified");
     return new NextResponse(hubChallenge, { status: 200 });
   } else {
-    console.log("Webhook verification failed");
     return new NextResponse("Verification failed", { status: 403 });
   }
 }
@@ -31,7 +29,6 @@ interface RouteContext {
 export async function POST(req: NextRequest, { params }: RouteContext) {
   const { agent: agentId } = await params;
   const body = await req.json() as WhatsappEvent;
-  // console.log("Received webhook:", JSON.stringify(body, null, 2));
 
   const data = body.entry[0];
 
@@ -42,9 +39,6 @@ export async function POST(req: NextRequest, { params }: RouteContext) {
         const message = change.value.messages[0];
         const contact = change.value.contacts![0];
 
-        // console.log("Contact:", contact);
-        // console.log("Message:", message);
-        // console.log("Business:", business);
 
         const {conversation, salesRep } = await UserConversation.getUserConversationId(
           contact,

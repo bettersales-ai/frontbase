@@ -13,7 +13,6 @@ import db, { billingPricesTable } from "@/db";
         .where(eq(billingPricesTable.id, id))
 
       if (!existingPack) {
-        console.log("Inserting pack", id);
         await tx
           .insert(billingPricesTable)
           .values({

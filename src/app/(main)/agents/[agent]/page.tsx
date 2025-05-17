@@ -17,8 +17,6 @@ const AgentPage: React.FC<AgentPageProps> = async ({ params }) => {
 
   const agentData = await getSalesRepData(agent);
 
-  console.log(JSON.stringify(agentData, null, 2));
-
   const successRate = await getSalesRepSuccessRate(agent);
   const totalConversations = await getSalesRepTotalConversations(agent);
   const activeConversations = await getSalesRepActiveConversations(agent);

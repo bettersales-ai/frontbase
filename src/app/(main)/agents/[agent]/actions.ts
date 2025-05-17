@@ -77,14 +77,26 @@ export const getSalesRepSuccessRate = async (salesRepId: string) => {
   if (rates.length === 0) {
     return 0;
   }
-  
-  const totalSuccess = rates.filter((rate) => rate.status === "success");
-  const totalFailed = rates.filter((rate) => rate.status === "failed");
-  const totalRunning = rates.filter((rate) => rate.status === "running");
 
-  const totalConversations = totalSuccess[0].count + totalFailed[0].count + totalRunning[0].count;
+  const totalSuccess = rates
+    .filter((rate) => rate.status === "success")
+    .reduce((acc, rate) => {
+      return acc + rate.count;
+    }, 0);
+  const totalFailed = rates
+    .filter((rate) => rate.status === "failed")
+    .reduce((acc, rate) => {
+      return acc + rate.count;
+    }, 0);
+  const totalRunning = rates
+    .filter((rate) => rate.status === "running")
+    .reduce((acc, rate) => {
+      return acc + rate.count;
+    }, 0);
 
-  return (totalSuccess[0].count / totalConversations) * 100;
+  const totalConversations = totalSuccess + totalFailed + totalRunning;
+
+  return ((totalSuccess + totalRunning) / totalConversations) * 100;
 }
 
 export const getSalesRepActiveConversations = async (salesRepId: string) => {
@@ -125,6 +137,6 @@ export const updateSalesRepStatus = async (id: string, status: boolean) => {
         eq(salesRepTable.id, id),
       )
     )
-  
+
   revalidatePath(`/agents/${id}`);
 }

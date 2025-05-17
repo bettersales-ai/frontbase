@@ -27,8 +27,7 @@ const NewBilling = ({ goBack }: NewBillingProps) => {
 
   const initializePayment = usePaystackPayment(config);
 
-  const onSuccess = ({ reference }: { reference: string }) => {
-    console.log(reference);
+  const onSuccess = () => {
     toast.success("Payment successful. Your credits will be added to your account shortly");
     goBack();
   };

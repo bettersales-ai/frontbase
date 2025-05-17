@@ -34,8 +34,6 @@ export async function POST(request: NextRequest) {
 
   const data = JSON.parse(Buffer.from(rawBody).toString("utf-8")) as PaystackData;
 
-  console.log("Received webhook data:", JSON.stringify(data, null, 2));
-
   if (data.event == "charge.success") {
     const { amount, reference, customer, metadata: _metadata, authorization } = data.data;
 

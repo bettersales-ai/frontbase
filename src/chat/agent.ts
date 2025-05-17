@@ -229,8 +229,6 @@ export class Agent {
   private async checkSessionEnded(message: string) {
     const key = `session:${this.sessionId}`;
 
-    console.log("Agent message:", message);
-
     if (message.includes("<END>")) {
       await redis.set(key + ":status", "ended");
       const cleanedText = message.replace(/<END>/g, "").trim();

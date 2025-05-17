@@ -188,7 +188,6 @@ const CreateAgent = (): React.ReactElement => {
     },
     validationSchema,
     onSubmit: async (values) => {
-      console.log("Deploying agent with data:", values);
       formik.setSubmitting(true);
       await createSalesRep({
         name: values.name,

@@ -26,12 +26,12 @@ const Conversations = async (): Promise<React.ReactElement> => {
       .select()
       .from(contactsTable)
       .where(eq(contactsTable.id, conversation.contact_id))
-    
+
     const [sales_rep] = await db
       .select()
       .from(salesRepTable)
       .where(eq(salesRepTable.id, conversation.sales_rep_id))
-    
+
     return {
       ...conversation,
       messages: conversation.messages.sort((a, b) => {
@@ -55,25 +55,23 @@ const Conversations = async (): Promise<React.ReactElement> => {
 
       <div className="space-y-4 w-full max-w-[50rem]">
         {conversations.map((conversation) => (
-          <button key={conversation.id} className="bg-white text-left w-full border border-gray-200 shadow-sm rounded-lg p-6 hover:shadow-md transition-all">
-            <div className="flex justify-between items-start">
+          <button key={conversation.id} className="flex flex-col gap-2 bg-white text-left w-full border border-gray-200 shadow-sm rounded-lg p-6 hover:shadow-md transition-all">
+            <div className="flex items-start justify-between">
               <div className="space-y-2">
                 <div className="flex items-center gap-2">
                   <h3 className="font-semibold text-lg">
                     {conversation.contact.name}
                   </h3>
-                  <Circle 
-                    className={`w-3 h-3 ${
-                      conversation.status === "running" ? "fill-green-500 text-green-500" : 
+                  <Circle
+                    className={`w-3 h-3 ${conversation.status === "running" ? "fill-green-500 text-green-500" :
                       conversation.status === "failed" ? "fill-red-500 text-red-500" :
-                      "fill-gray-500 text-gray-500"
-                    }`} 
+                        "fill-gray-500 text-gray-500"
+                      }`}
                   />
                 </div>
                 <p className="text-sm text-gray-500">
                   with {conversation.sales_rep.name}
                 </p>
-                <p className="text-sm text-gray-600">{conversation.messages[conversation.messages.length - 1].data}</p>
               </div>
               <div className="flex flex-col items-end gap-2">
                 <div className="flex items-center gap-4 text-sm text-gray-500">
@@ -87,6 +85,7 @@ const Conversations = async (): Promise<React.ReactElement> => {
                 </div>
               </div>
             </div>
+            <p className="text-sm text-gray-600 line-clamp-2">{conversation.messages[conversation.messages.length - 1].data}</p>
           </button>
         ))}
       </div>

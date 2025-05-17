@@ -3,49 +3,74 @@ import React from "react";
 import Link from "next/link";
 import { unauthorized } from "next/navigation";
 
-import { eq, desc } from "drizzle-orm";
 import { formatDistanceToNow } from "date-fns";
 import { MessageSquare, Circle } from "lucide-react";
+import { eq, and, desc, InferSelectModel } from "drizzle-orm";
 
 import { getCurrentUser } from "@/utils";
 import db, { conversationsTable, contactsTable, salesRepTable } from "@/db";
 
 
-const Conversations = async (): Promise<React.ReactElement> => {
+interface ConversationsProps {
+  searchParams: Promise<{
+    salesRep?: string;
+  }>
+}
+
+const Conversations = async ({ searchParams }: ConversationsProps): Promise<React.ReactElement> => {
+  const { salesRep } = await searchParams;
   const user = await getCurrentUser();
   if (!user) {
     unauthorized();
   }
 
-  const conversations = await Promise.all((await db
-    .select()
-    .from(conversationsTable)
-    .where(eq(conversationsTable.user_id, user.id))
-    .orderBy(desc(conversationsTable.updated_at))
-  ).map(async (conversation) => {
-    const [contact] = await db
-      .select()
-      .from(contactsTable)
-      .where(eq(contactsTable.id, conversation.contact_id))
+  let conversations: InferSelectModel<typeof conversationsTable>[] = [];
 
-    const [sales_rep] = await db
+  if (!salesRep) {
+    conversations = await db
       .select()
-      .from(salesRepTable)
-      .where(eq(salesRepTable.id, conversation.sales_rep_id))
+      .from(conversationsTable)
+      .where(eq(conversationsTable.user_id, user.id))
+      .orderBy(desc(conversationsTable.updated_at))
 
-    return {
-      ...conversation,
-      messages: conversation.messages.sort((a, b) => {
-        return new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime();
-      }),
-      contact: {
-        name: contact.name,
-      },
-      sales_rep: {
-        name: sales_rep.name,
-      },
-    };
-  }));
+  } else {
+    conversations = await db
+      .select()
+      .from(conversationsTable)
+      .where(
+        and(
+          eq(conversationsTable.user_id, user.id),
+          eq(conversationsTable.sales_rep_id, salesRep)
+        )
+      )
+      .orderBy(desc(conversationsTable.updated_at))
+  }
+
+  const res = await Promise.all(conversations
+    .map(async (conversation) => {
+      const [contact] = await db
+        .select()
+        .from(contactsTable)
+        .where(eq(contactsTable.id, conversation.contact_id))
+
+      const [sales_rep] = await db
+        .select()
+        .from(salesRepTable)
+        .where(eq(salesRepTable.id, conversation.sales_rep_id))
+
+      return {
+        ...conversation,
+        messages: conversation.messages.sort((a, b) => {
+          return new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime();
+        }),
+        contact: {
+          name: contact.name,
+        },
+        sales_rep: {
+          name: sales_rep.name,
+        },
+      };
+    }));
 
   return (
     <div className="flex flex-col items-center gap-9 pt-16 pb-8 w-full h-full">
@@ -55,7 +80,7 @@ const Conversations = async (): Promise<React.ReactElement> => {
       </div>
 
       <div className="space-y-4 w-full max-w-[50rem]">
-        {conversations.map((conversation) => (
+        {res.map((conversation) => (
           <Link href={`/conversations/${conversation.id}`} key={conversation.id} className="flex flex-col gap-2 bg-white text-left w-full border border-gray-200 shadow-sm rounded-lg p-6 hover:shadow-md transition-all">
             <div className="flex items-start justify-between">
               <div className="space-y-2">

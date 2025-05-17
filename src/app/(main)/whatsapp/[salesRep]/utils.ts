@@ -1,7 +1,7 @@
 import * as fs from "fs";
 import * as path from "path";
 
-import { eq,  type InferSelectModel } from "drizzle-orm";
+import { eq, type InferSelectModel } from "drizzle-orm";
 import { createClient } from "redis";
 
 import db, { contactsTable, billingTable, conversationsTable, salesRepTable } from "@/db";
@@ -125,6 +125,10 @@ export class UserConversation {
 
     if (!salesRep) {
       throw new Error("Sales rep does not exist");
+    }
+
+    if (!salesRep.is_active) {
+      throw new Error("Sales rep is not active");
     }
 
     const [billing] = await db

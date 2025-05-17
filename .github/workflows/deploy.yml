@@ -30,23 +30,7 @@ jobs:
             network=host
             image=moby/buildkit:master
 
-      - name: Setup linux port forwarding
-        run: |
-          #!/usr/bin/env bash
-
-          echo 'net.ipv4.ip_forward = 1' | sudo tee -a /etc/sysctl.d/99-tailscale.conf
-          echo 'net.ipv6.conf.all.forwarding = 1' | sudo tee -a /etc/sysctl.d/99-tailscale.conf
-          sudo sysctl -p /etc/sysctl.d/99-tailscale.conf
-
       - run: flyctl auth docker
-        env:
-          FLY_API_TOKEN: ${{ secrets.FLY_API_TOKEN }}
-
-      - name: Run proxy in background
-        run: |
-          flyctl machine start 908024def50e98 -a ${{ env.db_app }}
-          flyctl proxy 5432 -a ${{ env.db_app }} &
-          echo $! > proxy.pid
         env:
           FLY_API_TOKEN: ${{ secrets.FLY_API_TOKEN }}
 
@@ -60,11 +44,6 @@ jobs:
           secrets: |
             "deploy=${{ secrets.DEPLOY_SECRETS }}"
 
-      - name: Stop proxy
-        run: |
-          kill $(cat proxy.pid)
-          rm proxy.pid
-        continue-on-error: true
 
   deploy:
     name: Deploy app
@@ -97,14 +76,6 @@ jobs:
           node-version: 22
           cache: "yarn"
 
-      - name: Run proxy in background
-        run: |
-          flyctl machine start 908024def50e98 -a ${{ env.db_app }}
-          flyctl proxy 5432 -a ${{ env.db_app }} &
-          echo $! > proxy.pid
-        env:
-          FLY_API_TOKEN: ${{ secrets.FLY_API_TOKEN }}
-
       - name: Setup secrets
         run: echo "$DEPLOY_SECRETS" > .env
         env:
@@ -114,9 +85,3 @@ jobs:
         run : yarn install --production=false
 
       - run: yarn db:migrate
-
-      - name: Stop proxy
-        run: |
-          kill $(cat proxy.pid)
-          rm proxy.pid
-        continue-on-error: true

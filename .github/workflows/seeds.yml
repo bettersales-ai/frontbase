@@ -30,14 +30,6 @@ jobs:
           node-version: 22
           cache: "yarn"
 
-      - name: Run proxy in background
-        run: |
-          flyctl machine start 908024def50e98 -a ${{ env.db_app }}
-          flyctl proxy 5432 -a ${{ env.db_app }} &
-          echo $! > proxy.pid
-        env:
-          FLY_API_TOKEN: ${{ secrets.FLY_API_TOKEN }}
-
       - name: Setup secrets
         run: echo "$DEPLOY_SECRETS" > .env
         env:
@@ -48,9 +40,3 @@ jobs:
 
       - name: Run seeds
         run: yarn db:seed
-
-      - name: Stop proxy
-        run: |
-          kill $(cat proxy.pid)
-          rm proxy.pid
-        continue-on-error: true

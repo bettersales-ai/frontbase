@@ -138,5 +138,5 @@ export const updateSalesRepStatus = async (id: string, status: boolean) => {
       )
     )
 
-  revalidatePath(`/agents/${id}`);
+  revalidatePath(`/sales-reps/${id}`);
 }

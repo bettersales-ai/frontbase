@@ -9,7 +9,7 @@ import { z } from "zod";
 import { useFormik } from "formik";
 import { toFormikValidationSchema } from "zod-formik-adapter";
 
-import { getSalesRep, updateSalesRep } from "./actions";
+import { createSalesRep } from "./actions";
 
 
 const StepIndicator = ({ currentStep }: { currentStep: number }) => (
@@ -28,7 +28,7 @@ const StepIndicator = ({ currentStep }: { currentStep: number }) => (
         <div className={`w-10 h-10 flex items-center justify-center rounded-full border-2 ${currentStep >= 1 ? 'border-blue-600 bg-blue-600 text-white' : 'border-gray-300 bg-white text-gray-500'}`}>
           1
         </div>
-        <span className="mt-2 text-sm font-medium text-gray-500">Agent Info</span>
+        <span className="mt-2 text-sm font-medium text-gray-500">Sales Rep Info</span>
       </div>
 
       <div className="relative flex flex-col items-center">
@@ -49,7 +49,7 @@ const StepIndicator = ({ currentStep }: { currentStep: number }) => (
 );
 
 const validationSchema = toFormikValidationSchema(z.object({
-  name: z.string().nonempty("Agent name is required"),
+  name: z.string().nonempty("Sales Rep name is required"),
   accessToken: z.string().nonempty("Access Token is required"),
   sop: z.string().nonempty("Standard operating procedure is required"),
   phoneNumber: z.string().nonempty("WhatsApp Number is required"),
@@ -61,10 +61,10 @@ const validationSchema = toFormikValidationSchema(z.object({
 const Step1 = ({ formik }: { formik: any }) => (
   <div className="space-y-6 w-full">
     <div className="flex flex-col gap-2">
-      <label className="font-medium text-gray-700">Agent Name</label>
+      <label className="font-medium text-gray-700">Sales Rep Name</label>
       <input
         type="text"
-        placeholder="Enter agent name"
+        placeholder="Enter name"
         {...formik.getFieldProps("name")}
         className={`w-full outline-blue-500 p-3 border bg-white rounded-lg ${formik.touched.name && formik.errors.name ? "border-red-500" : "border-gray-200"}`}
       />
@@ -165,48 +165,31 @@ const Step3 = ({ onDeploy, isSubmitting }: { onDeploy: () => void; isSubmitting:
           Deploying...
         </>
       ) : (
-        'Deploy Agent'
+        'Create Sales Rep'
       )}
     </button>
   </div>
 );
 
-interface UpdateAgentProps {
-  params: Promise<{ agent: string }>;
-}
-
-type Res = Awaited<ReturnType<typeof getSalesRep>>;
-
-const UpdateAgent = ({ params }: UpdateAgentProps) => {
-  const router = useRouter();
-  const { agent } = React.use(params);
-
+const CreateSalesRep = (): React.ReactElement => {
   const [step, setStep] = React.useState(1);
-  const [agentData, setAgentData] = React.useState<Res | null>(null);
 
-  React.useEffect(() => {
-    (async () => {
-      const data = await getSalesRep(agent);
-      setAgentData(data);
-    })();
-  }, [agent]);
+  const router = useRouter();
 
   const formik = useFormik({
     initialValues: {
-      sop: agentData?.sop || "",
-      name: agentData?.name || "",
-      initial_message: agentData?.initial_message || "",
-      phoneNumber: agentData?.whatappCredentials?.phoneNumber || "",
-      accessToken: agentData?.whatappCredentials.accessToken || "",
-      phoneNumberId: agentData?.whatappCredentials.phoneNumberId || "",
-      ideal_customer_profile: agentData?.ideal_customer_profile || "",
+      sop: "",
+      name: "",
+      accessToken: "",
+      phoneNumber: "",
+      phoneNumberId: "",
+      initial_message: "",
+      ideal_customer_profile: "",
     },
     validationSchema,
-    enableReinitialize: true,
     onSubmit: async (values) => {
       formik.setSubmitting(true);
-      await updateSalesRep({
-        id: agent,
+      await createSalesRep({
         name: values.name,
         sop: values.sop,
         initial_message: values.initial_message,
@@ -222,10 +205,21 @@ const UpdateAgent = ({ params }: UpdateAgentProps) => {
     },
   });
 
+  const canProceed = () => {
+    if (step === 1) {
+      return !formik.errors.name && !formik.errors.sop && formik.touched.name && formik.touched.sop;
+    }
+    if (step === 2) {
+      return !formik.errors.phoneNumberId && !formik.errors.accessToken &&
+        formik.touched.phoneNumberId && formik.touched.accessToken;
+    }
+    return true;
+  };
+
   return (
     <div className="flex flex-col items-center gap-9 pt-16 pb-8 w-full h-full">
       <div className="text-center space-y-1">
-        <h1 className="mb-2 text-5xl tracking-tight font-extrabold text-gray-900">Create an Agent</h1>
+        <h1 className="mb-2 text-5xl tracking-tight font-extrabold text-gray-900">Create a Sales Rep</h1>
         <p className="text-gray-600 text-lg">Create kick-ass ads for your business</p>
       </div>
 
@@ -250,7 +244,11 @@ const UpdateAgent = ({ params }: UpdateAgentProps) => {
             <button
               type="button"
               onClick={() => setStep(s => s + 1)}
-              className={`px-6 py-3 rounded-lg font-medium transition-colors bg-blue-600 text-white hover:bg-blue-700"}`}
+              disabled={!canProceed()}
+              className={`px-6 py-3 rounded-lg font-medium transition-colors ${canProceed()
+                ? "bg-blue-600 text-white hover:bg-blue-700"
+                : "bg-gray-200 text-gray-400 cursor-not-allowed"
+                }`}
             >
               Next
             </button>
@@ -261,4 +259,4 @@ const UpdateAgent = ({ params }: UpdateAgentProps) => {
   );
 };
 
-export default UpdateAgent;
+export default CreateSalesRep;

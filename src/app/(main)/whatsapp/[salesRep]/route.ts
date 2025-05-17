@@ -22,12 +22,12 @@ export async function GET(req: NextRequest) {
 
 interface RouteContext {
   params: Promise<{
-    agent: string;
+    salesRep: string;
   }>
 }
 
 export async function POST(req: NextRequest, { params }: RouteContext) {
-  const { agent: agentId } = await params;
+  const { salesRep: salesRepId } = await params;
   const body = await req.json() as WhatsappEvent;
 
   const data = body.entry[0];
@@ -42,7 +42,7 @@ export async function POST(req: NextRequest, { params }: RouteContext) {
 
         const { isNewConversation, conversation, salesRep } = await UserConversation.getUserConversationId(
           contact,
-          agentId,
+          salesRepId,
         );
 
         await UserConversation.addMessageToConversation(

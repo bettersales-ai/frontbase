@@ -41,7 +41,7 @@ const Home = async (): Promise<React.JSX.Element> => {
         {sales.map((salesRep) => (
           <Link
             key={salesRep.id}
-            href={`/agents/${salesRep.id}`}
+            href={`/sales-reps/${salesRep.id}`}
             className="bg-white border border-gray-200 shadow-sm rounded-lg h-[12rem] p-6 text-left transition-all hover:shadow-md"
           >
             <div className="h-full flex flex-col justify-between">
@@ -60,7 +60,7 @@ const Home = async (): Promise<React.JSX.Element> => {
             </div>
           </Link>
         ))}
-        <Link href="/agents/create" className="bg-white border-2 border-dashed border-gray-300 flex flex-col justify-center items-center rounded-lg h-[12rem] transition-all hover:border-gray-400 hover:bg-gray-50">
+        <Link href="/sales-reps/create" className="bg-white border-2 border-dashed border-gray-300 flex flex-col justify-center items-center rounded-lg h-[12rem] transition-all hover:border-gray-400 hover:bg-gray-50">
           <PlusIcon className="w-12 h-12 text-gray-400" />
           <span className="text-sm font-medium text-gray-600 mt-2">Create Sales Rep</span>
         </Link>

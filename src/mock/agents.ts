@@ -1,6 +1,6 @@
-export const mockAgents = {
-  "agent-1": {
-    id: "agent-1",
+export const mockSalesReps = {
+  "sales-1": {
+    id: "sales-1",
     name: "Sales Pro Max",
     sop: "Engage with customers professionally, understand their needs, and provide tailored solutions. Follow up within 24 hours.",
     created_at: new Date("2023-01-15"),

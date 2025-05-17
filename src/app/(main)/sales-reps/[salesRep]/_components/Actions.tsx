@@ -35,7 +35,7 @@ const Actions = ({ id, name, currentStatus }: ActionsProps) => {
   return (
     <div className="flex justify-center items-center w-full gap-2">
       <Link className="hover:bg-gray-200 px-4 py-1 rounded-lg" href={`/conversations?salesRep=${id}`}>See Conversations</Link>
-      <Link className="hover:bg-gray-200 px-4 py-1 rounded-lg" href={`/agents/${id}/update`}>Edit Sales rep</Link>
+      <Link className="hover:bg-gray-200 px-4 py-1 rounded-lg" href={`/sales-reps/${id}/update`}>Edit Sales rep</Link>
       <button onClick={toggleModal} className="hover:bg-gray-200 px-4 py-1 rounded-lg">{action}</button>
       {showModal && (
         <div className="fixed inset-0 bg-black/60 bg-opacity-50 flex items-center justify-center">

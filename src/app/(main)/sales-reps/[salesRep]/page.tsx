@@ -6,25 +6,25 @@ import Actions from "./_components/Actions";
 import { getSalesRepActiveConversations, getSalesRepData, getSalesRepSuccessRate, getSalesRepTotalConversations } from "./actions";
 
 
-interface AgentPageProps {
+interface SalesRepProps {
   params: Promise<{
-    agent: string;
+    salesRep: string;
   }>;
 }
 
-const AgentPage: React.FC<AgentPageProps> = async ({ params }) => {
-  const { agent } = await params;
+const SalesRep: React.FC<SalesRepProps> = async ({ params }) => {
+  const { salesRep } = await params;
 
-  const agentData = await getSalesRepData(agent);
+  const salesRepData = await getSalesRepData(salesRep);
 
-  const successRate = await getSalesRepSuccessRate(agent);
-  const totalConversations = await getSalesRepTotalConversations(agent);
-  const activeConversations = await getSalesRepActiveConversations(agent);
+  const successRate = await getSalesRepSuccessRate(salesRep);
+  const totalConversations = await getSalesRepTotalConversations(salesRep);
+  const activeConversations = await getSalesRepActiveConversations(salesRep);
 
   return (
     <div className="flex flex-col items-center gap-9 pt-16 pb-8 w-full h-full">
       <div className="text-center space-y-1">
-        <h1 className="mb-2 text-5xl tracking-tight font-extrabold text-gray-900">{agentData.name}</h1>
+        <h1 className="mb-2 text-5xl tracking-tight font-extrabold text-gray-900">{salesRepData.name}</h1>
       </div>
 
       <div className="grid grid-cols-3 gap-8 px-24 w-full h-full">
@@ -43,15 +43,15 @@ const AgentPage: React.FC<AgentPageProps> = async ({ params }) => {
       </div>
 
       <Actions
-        id={agent}
-        name={agentData.name}
-        currentStatus={agentData.is_active}
+        id={salesRep}
+        name={salesRepData.name}
+        currentStatus={salesRepData.is_active}
       />
 
       <div className="flex flex-col gap-8 px-24 mt-8 w-[80%]">
         <div className="bg-white border border-gray-200 rounded-lg p-6 flex flex-col gap-2">
           <h2 className="text-xl font-bold text-gray-900">Standard Operating Procedure</h2>
-          <p className="text-md font-normal text-gray-500">{agentData.sop}</p>
+          <p className="text-md font-normal text-gray-500">{salesRepData.sop}</p>
         </div>
 
         <div className="bg-white border border-gray-200 rounded-lg p-6 flex flex-col gap-4">
@@ -59,15 +59,15 @@ const AgentPage: React.FC<AgentPageProps> = async ({ params }) => {
           <div className="space-y-3 text-gray-600">
             <div className="flex flex-col">
               <h6 className="text-md small-caps">Initial Message</h6>
-              <p className="text-md">{agentData.initial_message}</p>
+              <p className="text-md">{salesRepData.initial_message}</p>
             </div>
             <div className="flex flex-col">
               <h6 className="text-md small-caps">Ideal Customer Profile</h6>
-              <p className="text-md">{agentData.ideal_customer_profile}</p>
+              <p className="text-md">{salesRepData.ideal_customer_profile}</p>
             </div>
             <div className="flex flex-col">
               <h6 className="text-md small-caps">Created At</h6>
-              <p className="text-md">{format(new Date(agentData.created_at), "dd/MM/yyyy")}</p>
+              <p className="text-md">{format(new Date(salesRepData.created_at), "dd/MM/yyyy")}</p>
             </div>
           </div>
         </div>
@@ -77,15 +77,15 @@ const AgentPage: React.FC<AgentPageProps> = async ({ params }) => {
           <div className="space-y-3 text-gray-600">
             <div className="flex flex-col">
               <h6 className="text-md small-caps">Phone Number</h6>
-              <p className="text-md">{agentData.whatappCredentials.phoneNumber}</p>
+              <p className="text-md">{salesRepData.whatappCredentials.phoneNumber}</p>
             </div>
             <div className="flex flex-col">
               <h6 className="text-md small-caps">Phone Number ID</h6>
-              <p className="text-md">{agentData.whatappCredentials.phoneNumberId}</p>
+              <p className="text-md">{salesRepData.whatappCredentials.phoneNumberId}</p>
             </div>
             <div className="flex flex-col">
               <h6 className="text-md small-caps">Access Token</h6>
-              <p className="text-md">••••{agentData.whatappCredentials.accessToken.slice(-4)}</p>
+              <p className="text-md">••••{salesRepData.whatappCredentials.accessToken.slice(-4)}</p>
             </div>
           </div>
         </div>
@@ -94,4 +94,4 @@ const AgentPage: React.FC<AgentPageProps> = async ({ params }) => {
   );
 };
 
-export default AgentPage;
+export default SalesRep;

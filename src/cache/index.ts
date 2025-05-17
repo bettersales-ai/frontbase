@@ -6,6 +6,15 @@ const cache = createClient({
 
 cache.on("error", err => console.log("Redis cache Error", err));
 
-await cache.connect();
+(async () => {
+  try {
+    await cache.connect();
+    console.log("Redis cache connected");
+  } catch (error) {
+    console.error("Error connecting to Redis cache", error);
+  }
+})();
+
+export const redis = cache;
 
 export default cache;

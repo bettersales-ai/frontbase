@@ -2,10 +2,10 @@ import * as fs from "fs";
 import * as path from "path";
 
 import { eq, type InferSelectModel } from "drizzle-orm";
-import { createClient } from "redis";
 
 import db, { contactsTable, billingTable, conversationsTable, salesRepTable } from "@/db";
 
+import { redis } from "@/cache";
 import { Message } from "@/types";
 import { Contact, ContactConversation, mimeToExtension } from "./types";
 import { ReplyMessage, Video, Audio, Image, Document, MediaMessage } from "./reply";
@@ -14,16 +14,6 @@ import { ReplyMessage, Video, Audio, Image, Document, MediaMessage } from "./rep
 const mediaRoot = "media";
 const url = "https://graph.facebook.com/v20.0";
 
-
-const redis = createClient({
-  url: process.env.REDIS_URL,
-});
-
-redis.on("error", err => console.log("Redis redis Error", err));
-
-(async () => {
-  await redis.connect();
-})();
 
 export async function sendMessage(message: ReplyMessage, whatsappNumberId: string, token: string): Promise<boolean> {
   let mes: ReplyMessage = message;

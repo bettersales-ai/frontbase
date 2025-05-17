@@ -1,20 +1,11 @@
 import OpenAI from "openai";
-import { createClient } from "redis";
+
 import { ChatCompletionMessage, ChatCompletionMessageParam } from "openai/resources/index";
 
+import { redis } from "@/cache";
 import { SessionStatus, AgentTool, AgentResponse } from "./types";
 import { agentToolToTool, ToolCallEvent, TypedEventEmitter } from "./utils";
 
-
-const redis = createClient({
-  url: process.env.REDIS_URL,
-});
-
-redis.on("error", err => console.log("Redis redis Error", err));
-
-(async () => {
-  await redis.connect();
-})();
 
 const special_messages = `
 \n\n

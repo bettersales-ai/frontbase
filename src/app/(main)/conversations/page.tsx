@@ -1,5 +1,6 @@
 import React from "react";
 
+import Link from "next/link";
 import { unauthorized } from "next/navigation";
 
 import { eq, desc } from "drizzle-orm";
@@ -55,7 +56,7 @@ const Conversations = async (): Promise<React.ReactElement> => {
 
       <div className="space-y-4 w-full max-w-[50rem]">
         {conversations.map((conversation) => (
-          <button key={conversation.id} className="flex flex-col gap-2 bg-white text-left w-full border border-gray-200 shadow-sm rounded-lg p-6 hover:shadow-md transition-all">
+          <Link href={`/conversations/${conversation.id}`} key={conversation.id} className="flex flex-col gap-2 bg-white text-left w-full border border-gray-200 shadow-sm rounded-lg p-6 hover:shadow-md transition-all">
             <div className="flex items-start justify-between">
               <div className="space-y-2">
                 <div className="flex items-center gap-2">
@@ -86,7 +87,7 @@ const Conversations = async (): Promise<React.ReactElement> => {
               </div>
             </div>
             <p className="text-sm text-gray-600 line-clamp-2">{conversation.messages[conversation.messages.length - 1].data}</p>
-          </button>
+          </Link>
         ))}
       </div>
     </div>

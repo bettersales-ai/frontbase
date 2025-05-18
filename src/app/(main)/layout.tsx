@@ -37,6 +37,8 @@ export default async function RootLayout({ children }: Readonly<RootLayoutProps>
   }
 
   after(async () => {
+    if(!user) return;
+
     const [billing] = await db
       .select()
       .from(billingTable)
@@ -58,7 +60,7 @@ export default async function RootLayout({ children }: Readonly<RootLayoutProps>
 
   return (
     <div className="flex flex-col items-center w-full min-h-svh bg-gray-50">
-      <SetUserIdServerComponent userId={user!.id} />
+      {user && <SetUserIdServerComponent userId={user.id} />}
       <NavBar />
       {children}
     </div>

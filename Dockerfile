@@ -27,7 +27,10 @@ COPY package.json yarn.lock ./
 RUN --mount=type=cache,target=/root/.yarn YARN_CACHE_FOLDER=/root/.yarn \
     yarn install --frozen-lockfile --production=false
 
-COPY --parents src public next.config.ts postcss.config.mjs eslint.config.mjs tsconfig.json /app/
+COPY --parents src public \
+	next.config.ts postcss.config.mjs eslint.config.mjs tsconfig.json \
+	sentry.edge.config.ts sentry.server.config.ts \
+ 	/app/
 
 # Build application
 RUN --mount=type=secret,id=deploy \

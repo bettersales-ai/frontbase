@@ -1,11 +1,20 @@
 import { eq, type InferSelectModel } from "drizzle-orm";
 
-import db, { contactsTable, billingTable, conversationsTable, salesRepTable } from "@/db";
+import { LogSnag } from "@logsnag/next/server";
 
 import { redis } from "@/cache";
 import { Message } from "@/types";
 import { Contact, ContactConversation } from "./types";
 import { publishMessageToConversation } from "../pubsub";
+import db, { contactsTable, billingTable, conversationsTable, salesRepTable } from "@/db";
+
+const LOGSNAG_TOKEN = process.env.LOGSNAG_TOKEN || "";
+const LOGSNAG_PROJECT = process.env.LOGSNAG_PROJECT || "";
+
+const logsnag = new LogSnag({
+  token: LOGSNAG_TOKEN,
+  project: LOGSNAG_PROJECT,
+});
 
 export * from "./utils";
 
@@ -197,5 +206,11 @@ export class UserConversation {
 
     contactConversation.currentConversation = UserConversation.nullValue;
     await redis.set(`contacts:${wa_id}:conversation`, JSON.stringify(contactConversation));
+
+    await logsnag.insight.increment({
+      title: "Total conversations",
+      value: 1,
+      icon: "💬"
+    });
   }
 }

@@ -2,10 +2,9 @@
 
 import React from "react";
 
-import { usePaystackPayment } from "react-paystack";
-
 import { toast } from "sonner";
-
+import { useLogSnag } from "@logsnag/next";
+import { usePaystackPayment } from "react-paystack";
 
 import { getBillingPrices, getCurrentUser } from "../actions";
 
@@ -25,6 +24,7 @@ const NewBilling = ({ goBack }: NewBillingProps) => {
   const [creditPacks, setCreditPacks] = React.useState<CreditPack[]>([]);
   const [currentUser, setCurrentUser] = React.useState<CurrentUser | null>(null);
 
+  const { track } = useLogSnag();
   const initializePayment = usePaystackPayment(config);
 
   const onSuccess = () => {
@@ -35,6 +35,12 @@ const NewBilling = ({ goBack }: NewBillingProps) => {
   const onClose = () => {
     console.log("closed");
     toast.error("Payment closed");
+    track({
+      channel: "payments",
+      event: "Payment closed",
+      user_id: currentUser!.id,
+      icon: "❌",
+    });
   }
 
   React.useEffect(() => {

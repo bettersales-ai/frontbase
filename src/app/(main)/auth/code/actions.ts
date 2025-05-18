@@ -22,11 +22,16 @@ const logsnag = new LogSnag({
 
 export const verifyCode = async (code: string) => {
   const cacheKey = `email-verification-code:${code}`;
-  const email = await cache.get(cacheKey);
+  const data = await cache.get(cacheKey);
 
-  if (!email) {
+  if (!data) {
     throw new Error("Invalid or expired code");
   }
+
+  const { email, extraData } = JSON.parse(data) as {
+    email: string;
+    extraData?: Record<string, string>;
+  };
 
   await cache.del(cacheKey);
   // Check if user exists
@@ -36,7 +41,7 @@ export const verifyCode = async (code: string) => {
     .where(eq(usersTable.email, email!)))[0];
 
   if (!user) {
-    return await handleSignUp("", email!);
+    return await handleSignUp(extraData!.name, email!);
   } else {
     return await handleSignIn(user.id);
   }
@@ -56,20 +61,35 @@ const handleSignUp = async (name: string, email: string) => {
 
   await logsnag.track({
     channel: "onboarding",
-    event: `${user.name} just signed up!`,
+    event: `${name} just signed up!`,
     notify: true,
     user_id: user.id,
     tags: {
-      method: "google",
+      method: "email",
     }
   });
 
-    await db
-      .insert(billingTable)
-      .values({
-        user_id: user.id,
-        credits_available: 0,
-      });
+  await logsnag.identify({
+    user_id: user.id,
+    properties: {
+      name: user.name,
+      email: user.email,
+      credits_available: 0,
+    },
+  });
+
+  await logsnag.insight.increment({
+    title: "User count",
+    value: 1,
+    icon: "👨",
+  });
+
+  await db
+    .insert(billingTable)
+    .values({
+      user_id: user.id,
+      credits_available: 0,
+    });
 
   const token = generateToken({
     id: user.id,

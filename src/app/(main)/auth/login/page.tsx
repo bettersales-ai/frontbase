@@ -5,6 +5,7 @@ import { redirectUserToLogin, sendEmailVerification } from "./actions";
 
 
 const Login = (): React.ReactElement => {
+  const [name, setName] = React.useState<string>("");
   const [email, setEmail] = React.useState<string>("");
 
   const onClickLoginWithGoogle = async () => {
@@ -12,7 +13,7 @@ const Login = (): React.ReactElement => {
   };
 
   const onClickSendCodeToEmail = async () => {
-    await sendEmailVerification(email);
+    await sendEmailVerification(name, email);
   };
 
   return (
@@ -25,6 +26,12 @@ const Login = (): React.ReactElement => {
 
         <div className="w-full space-y-3">
           <div className="flex flex-col items-center gap-3">
+            <input
+              type="text"
+              placeholder="Enter your name"
+              onChange={(e) => setName(e.target.value)}
+              className="w-full border border-gray-300 bg-white shadow-xs rounded-lg px-3 py-2.5 text-sm text-gray-900 placeholder-gray-500 focus:ring-2 focus:ring-indigo-600 focus:border-transparent outline-none transition-all duration-200"
+            />
             <input
               type="email"
               placeholder="Enter your email"

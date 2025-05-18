@@ -104,6 +104,21 @@ const handleSignUp = async (request: NextRequest, name: string, email: string) =
     }
   });
 
+  await logsnag.identify({
+    user_id: user.id,
+    properties: {
+      name: user.name,
+      email: user.email,
+      credits_available: 0,
+    },
+  });
+
+  await logsnag.insight.increment({
+    title: "User count",
+    value: 1,
+    icon: "👨",
+  });
+
   const token = generateToken({
     id: user.id,
     data: undefined

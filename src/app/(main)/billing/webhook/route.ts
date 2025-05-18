@@ -4,12 +4,21 @@ import { headers as NextHeaders } from "next/headers";
 import { type NextRequest, NextResponse } from "next/server";
 
 import { eq } from "drizzle-orm";
+import { LogSnag } from "@logsnag/next/server";
 
 import { PaymentMetadata, PaystackData } from "@/types";
 import db, { usersTable, billingPricesTable, billingHistoryTable, billingTable } from "@/db";
 
 
 const secret = process.env.PAYSTACK_SECRET_KEY;
+const LOGSNAG_TOKEN = process.env.LOGSNAG_TOKEN || "";
+const LOGSNAG_PROJECT = process.env.LOGSNAG_PROJECT || "";
+
+
+const logsnag = new LogSnag({
+  token: LOGSNAG_TOKEN,
+  project: LOGSNAG_PROJECT,
+});
 
 
 export async function POST(request: NextRequest) {
@@ -105,12 +114,38 @@ export async function POST(request: NextRequest) {
         reference,
         user_id: user.id,
         status: "success",
-        amount: String(amount  / 100),
+        amount: String(amount / 100),
         billing_id: userBilling.id,
         credits_bought: billingPrice.credits,
       }).returning();
 
     const totalCredits = userBilling.credits_available + transaction.credits_bought;
+
+    await logsnag.track({
+      channel: "payments",
+      event: "Payment successful",
+      user_id: user.id,
+      icon: "💰",
+      notify: true,
+      tags: {
+        credits: transaction.credits_bought,
+      }
+    });
+
+    await logsnag.identify({
+      user_id: user.id,
+      properties: {
+        name: user.name,
+        email: user.email,
+        credits_available: totalCredits,
+      }
+    });
+
+    await logsnag.insight.increment({
+      title: "Total credits bought",
+      value: transaction.credits_bought,
+      icon: "💰",
+    });
 
     await db
       .update(billingTable)

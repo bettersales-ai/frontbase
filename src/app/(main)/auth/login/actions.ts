@@ -52,17 +52,21 @@ export const redirectUserToLogin = async () => {
   redirect(url);
 }
 
-const generateEmailVerificationCode = async (email: string) => {
+const generateEmailVerificationCode = async (email: string, extraData?: Record<string, string>) => {
   const code = crypto.randomBytes(3).toString("hex").toUpperCase();
   const cacheKey = `email-verification-code:${code}`;
-  await cache.set(cacheKey, email, { EX: 5 * 60 });
+  const data = {
+    email,
+    extraData,
+  };
 
+  await cache.set(cacheKey, JSON.stringify(data), { EX: 5 * 60 });
   return code;
 }
 
 
-export const sendEmailVerification = async (email: string) => {
-  const code = await generateEmailVerificationCode(email);
+export const sendEmailVerification = async (name: string, email: string) => {
+  const code = await generateEmailVerificationCode(email, { name });
   const emailHtml = await render(React.createElement(AuthOtp, { loginCode: code }));
 
   await mail.sendMail({

@@ -6,10 +6,12 @@ import React from "react";
 import { useRouter } from "next/navigation";
 
 import { z } from "zod";
+import { toast } from "sonner";
 import { useFormik } from "formik";
 import { toFormikValidationSchema } from "zod-formik-adapter";
 
 import { createSalesRep } from "./actions";
+import { useLogSnag } from "@logsnag/next";
 
 
 const StepIndicator = ({ currentStep }: { currentStep: number }) => (
@@ -172,6 +174,7 @@ const Step3 = ({ onDeploy, isSubmitting }: { onDeploy: () => void; isSubmitting:
 );
 
 const CreateSalesRep = (): React.ReactElement => {
+  const { track } = useLogSnag();
   const [step, setStep] = React.useState(1);
 
   const router = useRouter();
@@ -200,6 +203,14 @@ const CreateSalesRep = (): React.ReactElement => {
           phoneNumberId: values.phoneNumberId,
         },
       });
+
+      toast.success("Sales Rep created successfully");
+      track({
+        icon: "💁‍♀️",
+        channel: "sales-rep",
+        event: "Sales Rep Created",
+      });
+
       formik.setSubmitting(false);
       router.push("/");
     },

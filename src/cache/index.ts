@@ -1,20 +1,31 @@
 import { createClient } from "redis";
 
-const cache = createClient({
+const redis = createClient({
   url: process.env.REDIS_URL,
+  socket: {
+    reconnectStrategy: (retries) => {
+      // Maximum retry delay of 3 seconds
+      return Math.min(retries * 50, 3000);
+    }
+  },
 });
 
-cache.on("error", err => console.log("Redis cache Error", err));
+redis.on("error", (err) => console.error("Redis Client Error:", err));
 
-(async () => {
-  try {
-    await cache.connect();
-    console.log("Connected to Redis cache");
-  } catch (error) {
-    console.error("Error connecting to Redis cache", error);
+export const connectRedis = async () => {
+  if (!redis.isOpen) {
+    try {
+      await redis.connect();
+      console.log("Connected to Redis redis");
+    } catch (error) {
+      console.error("Error connecting to Redis", error);
+      throw error;
+    }
   }
-})();
+  return redis;
+};
 
-export const redis = cache;
+// Initialize connection
+connectRedis().catch(console.error);
 
-export default cache;
+export default redis;

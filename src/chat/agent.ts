@@ -2,7 +2,7 @@ import OpenAI from "openai";
 
 import { ChatCompletionMessage, ChatCompletionMessageParam } from "openai/resources/index";
 
-import { redis } from "@/cache";
+import redis from "@/cache";
 import { SessionStatus, AgentTool, AgentResponse } from "./types";
 import { agentToolToTool, ToolCallEvent, TypedEventEmitter } from "./utils";
 

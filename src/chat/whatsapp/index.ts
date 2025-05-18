@@ -2,7 +2,7 @@ import { eq, type InferSelectModel } from "drizzle-orm";
 
 import { LogSnag } from "@logsnag/next/server";
 
-import { redis } from "@/cache";
+import redis from "@/cache";
 import { Message } from "@/types";
 import { Contact, ContactConversation } from "./types";
 import { publishMessageToConversation } from "../pubsub";

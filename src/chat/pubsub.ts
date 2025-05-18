@@ -1,6 +1,6 @@
 import "server-only";
 
-import { redis } from "@/cache";
+import redis from "@/cache";
 import { Message } from "@/types";
 
 export const publishMessageToConversation = async (conversationId: string, message: Message) => {

@@ -20,7 +20,7 @@ FROM base AS build
 
 # Install packages needed to build node modules
 RUN apt-get update -qq && \
-    apt-get install --no-install-recommends -y build-essential node-gyp pkg-config python-is-python3
+    apt-get install --no-install-recommends -y ca-certificates build-essential node-gyp pkg-config python-is-python3
 
 # Install node modules
 COPY package.json yarn.lock ./
@@ -32,10 +32,13 @@ COPY --parents src public \
 	sentry.edge.config.ts sentry.server.config.ts \
  	/app/
 
-# Build application
 RUN --mount=type=secret,id=deploy \
+    --mount=type=secret,id=sentry_release \
+    --mount=type=secret,id=sentry_auth_token \
     --mount=type=cache,target=/root/.yarn YARN_CACHE_FOLDER=/root/.yarn \
     cp /run/secrets/deploy .env.production \
+    && export SENTRY_RELEASE=$(cat /run/secrets/sentry_release) \
+    && export SENTRY_AUTH_TOKEN=$(cat /run/secrets/sentry_auth_token) \
     && yarn build
 
 # Remove development dependencies

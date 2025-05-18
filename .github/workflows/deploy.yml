@@ -42,7 +42,9 @@ jobs:
           cache-to: type=gha,mode=max
           tags: ${{ env.image }}:${{ github.sha }}
           secrets: |
+            "sentry_release=${{ github.sha }}"
             "deploy=${{ secrets.DEPLOY_SECRETS }}"
+            "sentry_auth_token=${{ secrets.SENTRY_AUTH_TOKEN }}"
 
 
   deploy:
@@ -58,7 +60,7 @@ jobs:
         uses: superfly/flyctl-actions/setup-flyctl@master
 
       - name: Deploy to fly.io
-        run: flyctl deploy --image=${{ env.image }}:${{ github.sha }}
+        run: flyctl deploy --image=${{ env.image }}:${{ github.sha }} -e SENTRY_RELEASE=${{ github.sha }}
         env:
           FLY_API_TOKEN: ${{ secrets.FLY_API_TOKEN }}
 

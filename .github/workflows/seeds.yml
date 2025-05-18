@@ -6,6 +6,7 @@ on:
       - main
     paths:
       - "src/seed/**"
+  workflow_dispatch:
 
 env:
   db_app: bettersalesai-database

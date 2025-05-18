@@ -1,9 +1,10 @@
 "use server";
 
 import { redirect } from "next/navigation";
+import { revalidatePath } from "next/cache";
 import { cookies as NextCookies } from "next/headers";
 
-import { eq } from "drizzle-orm";
+import { eq, InferSelectModel } from "drizzle-orm";
 import { LogSnag } from "@logsnag/next/server";
 
 import cache from "@/cache";
@@ -43,7 +44,7 @@ export const verifyCode = async (code: string) => {
   if (!user) {
     return await handleSignUp(extraData!.name, email!);
   } else {
-    return await handleSignIn(user.id);
+    return await handleSignIn(user);
   }
 }
 
@@ -104,15 +105,16 @@ const handleSignUp = async (name: string, email: string) => {
     sameSite: isDev ? "lax" : "none",
   });
 
+  revalidatePath("/");
   return redirect("/");
 }
 
-const handleSignIn = async (userId: string) => {
+const handleSignIn = async (user: InferSelectModel<typeof usersTable>) => {
   const cookies = await NextCookies();
   const isDev = process.env.NODE_ENV === "development";
 
   const token = generateToken({
-    id: userId,
+    id: user.id,
     data: undefined
   });
 
@@ -124,5 +126,14 @@ const handleSignIn = async (userId: string) => {
     sameSite: isDev ? "lax" : "none",
   });
 
+  await logsnag.identify({
+    user_id: user.id,
+    properties: {
+      name: user.name,
+      email: user.email,
+    },
+  });
+
+  revalidatePath("/");
   return redirect("/");
 }

@@ -1,9 +1,10 @@
+import { revalidatePath } from "next/cache";
 import { cookies as NextCookies } from "next/headers";
 import { type NextRequest, NextResponse } from "next/server";
 
-import { eq } from "drizzle-orm";
 import { google } from "googleapis";
 import { LogSnag } from "@logsnag/next/server";
+import { eq, InferSelectModel } from "drizzle-orm";
 
 import cache from "@/cache";
 import { AUTH_COOKIE_NAME } from "@/types";
@@ -74,7 +75,7 @@ export async function GET(request: NextRequest) {
   if (!user) {
     return await handleSignUp(request, data.name!, data.email!);
   } else {
-    return await handleSignIn(request, user.id);
+    return await handleSignIn(request, user);
   }
 }
 
@@ -132,16 +133,17 @@ const handleSignUp = async (request: NextRequest, name: string, email: string) =
     sameSite: isDev ? "lax" : "none",
   });
 
+  revalidatePath("/");
   const baseUrl = await getBaseUrl();
   return NextResponse.redirect(new URL("/", baseUrl));
 }
 
-const handleSignIn = async (request: NextRequest, userId: string) => {
+const handleSignIn = async (request: NextRequest, user: InferSelectModel<typeof usersTable>) => {
   const cookies = await NextCookies();
   const isDev = process.env.NODE_ENV === "development";
 
   const token = generateToken({
-    id: userId,
+    id: user.id,
     data: undefined
   });
 
@@ -153,6 +155,15 @@ const handleSignIn = async (request: NextRequest, userId: string) => {
     sameSite: isDev ? "lax" : "none",
   });
 
+  await logsnag.identify({
+    user_id: user.id,
+    properties: {
+      name: user.name,
+      email: user.email,
+    },
+  });
+
+  revalidatePath("/");
   const baseUrl = await getBaseUrl();
   return NextResponse.redirect(new URL("/", baseUrl));
 }

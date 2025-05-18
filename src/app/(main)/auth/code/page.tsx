@@ -6,6 +6,7 @@ import Link from "next/link";
 
 import { verifyCode } from "./actions";
 
+
 const VerifyCode = (): React.ReactElement => {
   const [code, setCode] = React.useState<string>("");
   const [countdown, setCountdown] = React.useState<number>(60);

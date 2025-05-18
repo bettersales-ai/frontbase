@@ -14,4 +14,9 @@ Sentry.init({
   debug: false,
 
   enabled: process.env.NODE_ENV === "production",
+
+   integrations: [
+    // send console.log, console.error, and console.warn calls as logs to Sentry
+    Sentry.consoleLoggingIntegration({ levels: ["error", "warn"] }),
+  ],
 });

@@ -4,6 +4,7 @@ import { headers as NextHeaders } from "next/headers";
 import { type NextRequest, NextResponse } from "next/server";
 
 import { eq } from "drizzle-orm";
+import * as Sentry from "@sentry/nextjs";
 import { LogSnag } from "@logsnag/next/server";
 
 import { PaymentMetadata, PaystackData } from "@/types";
@@ -96,7 +97,14 @@ export async function POST(request: NextRequest) {
     }
 
     if (amount != parseInt(billingPrice.price) * 100) {
-      // Log to analytics
+      Sentry.captureMessage("Amount mismatch", {
+        extra: {
+          expected: parseInt(billingPrice.price) * 100,
+          received: amount,
+        },
+        level: "fatal",
+      });
+
       console.error("Amount mismatch", {
         expected: parseInt(billingPrice.price) * 100,
         received: amount,

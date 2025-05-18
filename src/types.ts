@@ -16,6 +16,7 @@ export interface WhatsAppCredentials {
 export interface Message {
   data: string;
   timestamp: number;
+  platform_id: string;
   sender: "user" | "agent";
   type: "text" | "image" | "video" | "audio" | "file";
 }

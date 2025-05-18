@@ -97,6 +97,9 @@ export const conversationsTable = pgTable("conversations", {
 
   contact_id: varchar()
     .notNull().references(() => contactsTable.id),
+  
+  platform_id: varchar({ length: 255 })
+    .notNull().default(""),
 
   messages: jsonb()
     .$type<Message[]>()
@@ -107,6 +110,9 @@ export const conversationsTable = pgTable("conversations", {
     .$type<"running" | "failed" | "success">()
     .notNull()
     .default("running"),
+
+  handoff_active: boolean()
+    .notNull().default(false),
 });
 
 
@@ -116,8 +122,8 @@ export const billingTable = pgTable("billing", {
   created_at: timestamp().notNull().defaultNow(),
   updated_at: timestamp().notNull().defaultNow(),
   paystack_authorization: jsonb()
-  .$type<PaystackData["data"]["authorization"]>()
-  .default({} as PaystackData["data"]["authorization"]),
+    .$type<PaystackData["data"]["authorization"]>()
+    .default({} as PaystackData["data"]["authorization"]),
   paystack_customer_id: varchar({ length: 255 }),
   user_id: varchar().notNull().references(() => usersTable.id),
 });

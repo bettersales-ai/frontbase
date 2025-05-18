@@ -28,6 +28,7 @@ export const mockConversations = [
     sales_rep: {
       name: "Sales Bot Alpha"
     },
+    handoff_active: false,
   },
   {
     id: "conv2",
@@ -46,6 +47,7 @@ export const mockConversations = [
     sales_rep: {
       name: "Sales Bot Beta"
     },
+    handoff_active: false,
   },
   {
     id: "conv3",
@@ -64,6 +66,7 @@ export const mockConversations = [
     sales_rep: {
       name: "Sales Bot Gamma"
     },
+    handoff_active: false,
   },
   {
     id: "conv4",
@@ -82,5 +85,6 @@ export const mockConversations = [
     sales_rep: {
       name: "Sales Bot Delta"
     },
+    handoff_active: false,
   },
 ] satisfies Conversation[];

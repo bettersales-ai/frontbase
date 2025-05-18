@@ -1,9 +1,9 @@
 import { type NextRequest, NextResponse } from "next/server";
 
 import { Agent } from "@/chat";
+import { WhatsappEvent } from "@/chat/whatsapp/types";
+import { UserConversation, sendMessage, showTypingIndicator } from "@/chat/whatsapp";
 
-import { WhatsappEvent } from "./types";
-import { sendMessage, UserConversation } from "./utils";
 
 const WHATSAPP_VERIFY_TOKEN = process.env.WHATSAPP_VERIFY_TOKEN;
 
@@ -47,9 +47,15 @@ export async function POST(req: NextRequest, { params }: RouteContext) {
 
           await UserConversation.addMessageToConversation(
             conversation.id,
+            message.id,
             "user",
             message.text!.body,
           );
+
+          if (conversation.handoff_active) {
+            console.log("Handoff active, skipping message");
+            return new NextResponse("OK", { status: 200 });
+          }
 
           const agent = new Agent(conversation.id);
           const status = await agent.getSessionStatus();
@@ -63,12 +69,6 @@ export async function POST(req: NextRequest, { params }: RouteContext) {
               content: salesRep.initial_message,
             });
 
-            await UserConversation.addMessageToConversation(
-              conversation.id,
-              "agent",
-              salesRep.initial_message,
-            );
-
             await sendMessage({
               to: contact!.wa_id,
               type: "text",
@@ -79,18 +79,25 @@ export async function POST(req: NextRequest, { params }: RouteContext) {
               },
             }, business.phone_number_id, salesRep.whatappCredentials.accessToken);
 
+            await UserConversation.addMessageToConversation(
+              conversation.id,
+              message.id,
+              "agent",
+              salesRep.initial_message,
+            );
+
             return new NextResponse("OK", { status: 200 });
           }
+
+          await showTypingIndicator(
+            business.phone_number_id,
+            message.id,
+            salesRep.whatappCredentials.accessToken,
+          );
 
           const res = await agent.send(message.text!.body);
 
           if (res.type === "message") {
-            await UserConversation.addMessageToConversation(
-              conversation.id,
-              "agent",
-              res.message!,
-            );
-
             await sendMessage({
               to: contact!.wa_id,
               type: "text",
@@ -100,19 +107,24 @@ export async function POST(req: NextRequest, { params }: RouteContext) {
                 body: res.message!,
               },
             }, business.phone_number_id, salesRep.whatappCredentials.accessToken);
+
+            await UserConversation.addMessageToConversation(
+              conversation.id,
+              message.id,
+              "agent",
+              res.message!,
+            );
           }
 
           if (res.isEnded) {
             // console.log("Ending conversation");
             await UserConversation.endUserConversation(
-              contact,
+              contact.wa_id,
               salesRep,
-              // FIXME: Change this to the actual result
-              "success",
             );
           }
         } catch (error) {
-          console.error("Error processing message", error); 
+          console.error("Error processing message", error);
         } finally {
           console.log("Message processed");
         }

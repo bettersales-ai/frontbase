@@ -1,108 +1,13 @@
-import * as fs from "fs";
-import * as path from "path";
-
 import { eq, type InferSelectModel } from "drizzle-orm";
 
 import db, { contactsTable, billingTable, conversationsTable, salesRepTable } from "@/db";
 
 import { redis } from "@/cache";
 import { Message } from "@/types";
-import { Contact, ContactConversation, mimeToExtension } from "./types";
-import { ReplyMessage, Video, Audio, Image, Document, MediaMessage } from "./reply";
+import { Contact, ContactConversation } from "./types";
+import { publishMessageToConversation } from "../pubsub";
 
-
-const mediaRoot = "media";
-const url = "https://graph.facebook.com/v20.0";
-
-
-export async function sendMessage(message: ReplyMessage, whatsappNumberId: string, token: string): Promise<boolean> {
-  let mes: ReplyMessage = message;
-  if (["audio", "video", "document", "image"].includes(message.type)) {
-    const newMessage = message as MediaMessage;
-    const media = newMessage[newMessage.type] as Audio | Video | Document | Image;
-    const filenameId = await uploadMedia(whatsappNumberId, media.file!, media.mime_type!, token);
-    media.id = filenameId;
-
-    newMessage[newMessage.type] = media;
-
-    mes = newMessage;
-  }
-
-  const response = await fetch(`${url}/${whatsappNumberId}/messages`, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      Authorization: `Bearer ${token}`,
-    },
-    body: JSON.stringify(mes),
-  });
-
-  if (response.ok) {
-    return true;
-  }
-  return false;
-}
-
-export async function downloadMedia(mediaId: string, mimeType: string, token: string): Promise<string> {
-  const response = await fetch(`${url}/${mediaId}`, {
-    method: "GET",
-    headers: {
-      Authorization: `Bearer ${token}`,
-    },
-  });
-
-  if (!response.ok) {
-    throw new Error(`Failed to fetch media: ${response.statusText}`);
-  }
-
-  const data = await response.json();
-
-  const downloadUrl = data.url;
-  const filename = path.join(mediaRoot, `${mediaId}${mimeToExtension[mimeType]}`);
-
-  fs.mkdirSync(path.dirname(filename), { recursive: true });
-
-  const fileResponse = await fetch(downloadUrl, {
-    method: "GET",
-    headers: {
-      Authorization: `Bearer ${token}`,
-    },
-  });
-
-  if (!fileResponse.ok) {
-    throw new Error(`Failed to download media: ${fileResponse.statusText}`);
-  }
-
-  const fileBuffer = await fileResponse.arrayBuffer();
-  const fileData = Buffer.from(fileBuffer);
-  fs.writeFileSync(filename, fileData);
-  return filename;
-}
-
-export async function uploadMedia(phoneNumberId: string, filename: string, mimeType: string, token: string): Promise<string> {
-  const formData = new FormData();
-  const fileBuffer = await fs.promises.readFile(filename);
-  const fileBlob = new Blob([fileBuffer], { type: mimeType });
-  formData.append("file", fileBlob, path.basename(filename));
-  formData.append("type", mimeType);
-  formData.append("messaging_product", "whatsapp");
-
-  const response = await fetch(`${url}/${phoneNumberId}/media`, {
-    method: "POST",
-    headers: {
-      Authorization: `Bearer ${token}`,
-    },
-    body: formData,
-  });
-
-  if (!response.ok) {
-    throw new Error(`Failed to upload media: ${response.statusText}`);
-  }
-
-  const data = await response.json();
-  return data.id;
-}
-
+export * from "./utils";
 
 export class UserConversation {
   private static nullValue = "null";
@@ -137,7 +42,7 @@ export class UserConversation {
     return salesRep;
   }
 
-  public static async addMessageToConversation(conversationId: string, sender: Message["sender"], message: string) {
+  public static async addMessageToConversation(conversationId: string, messageId: string, sender: Message["sender"], message: string) {
     const [conversation] = await db
       .select()
       .from(conversationsTable)
@@ -146,6 +51,17 @@ export class UserConversation {
     if (!conversation) {
       throw new Error("Conversation does not exist");
     }
+
+    await publishMessageToConversation(
+      conversation.id,
+      {
+        sender,
+        type: "text",
+        data: message,
+        timestamp: Date.now(),
+        platform_id: messageId,
+      },
+    );
 
     await db
       .update(conversationsTable)
@@ -157,10 +73,13 @@ export class UserConversation {
             type: "text",
             data: message,
             timestamp: Date.now(),
+            platform_id: messageId,
           }
         ]
       })
       .where(eq(conversationsTable.id, conversationId));
+
+    // revalidatePath(`/conversations/${conversationId}`);
   }
 
   public static async getUserConversationId(contact: Contact, sales_rep: string) {
@@ -239,8 +158,8 @@ export class UserConversation {
     }
   }
 
-  public static async endUserConversation(contact: Contact, salesRep: InferSelectModel<typeof salesRepTable>, status: "failed" | "success"): Promise<void> {
-    const key = `contacts:${contact.wa_id}:conversation`;
+  public static async endUserConversation(wa_id: string, salesRep: InferSelectModel<typeof salesRepTable>): Promise<void> {
+    const key = `contacts:${wa_id}:conversation`;
     const data = await redis.get(key);
 
     if (!data) {
@@ -268,12 +187,15 @@ export class UserConversation {
 
     const contactConversation = JSON.parse(data) as ContactConversation;
 
+    // TODO: Write a function that summarizes the conversation
+    // and tell if it was successful or not
+
     await db
       .update(conversationsTable)
-      .set({ status })
+      .set({ status: "success" })
       .where(eq(conversationsTable.id, contactConversation.currentConversation));
 
     contactConversation.currentConversation = UserConversation.nullValue;
-    await redis.set(`contacts:${contact.wa_id}:conversation`, JSON.stringify(contactConversation));
+    await redis.set(`contacts:${wa_id}:conversation`, JSON.stringify(contactConversation));
   }
 }

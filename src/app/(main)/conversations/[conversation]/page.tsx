@@ -1,10 +1,12 @@
 import React from "react";
 
+import { notFound } from "next/navigation";
+
 import { eq } from "drizzle-orm";
 import db, { conversationsTable, contactsTable, salesRepTable } from "@/db";
 
 import ChatWindow from "./_components/ChatWindow";
-import { notFound } from "next/navigation";
+
 
 interface ConversationProps {
   params: Promise<{
@@ -19,7 +21,6 @@ const Conversation = async ({ params }: ConversationProps): Promise<React.ReactE
     .select()
     .from(conversationsTable)
     .where(eq(conversationsTable.id, conversationId));
-
 
   if (!conversation) {
     notFound();
@@ -38,10 +39,10 @@ const Conversation = async ({ params }: ConversationProps): Promise<React.ReactE
     .select()
     .from(salesRepTable)
     .where(eq(salesRepTable.id, conversation.sales_rep_id));
+
   if (!sales_rep) {
     notFound();
   }
-
 
   return (
     <div className="flex flex-col items-center gap-9 pt-16 pb-8 w-full h-full relative">
@@ -50,11 +51,13 @@ const Conversation = async ({ params }: ConversationProps): Promise<React.ReactE
         <p className="text-gray-600 text-lg">{conversation.created_at.toLocaleDateString()}</p>
       </div>
 
-      <ChatWindow messages={conversation.messages} />
-
-      <button className="fixed bottom-4 bg-blue-500 hover:bg-blue-600 text-white font-bold py-4 px-8 rounded-full shadow-lg transition-colors">
-        Jump In!
-      </button>
+      <ChatWindow
+        conversationId={conversationId}
+        messages={conversation.messages}
+        salesRepId={conversation.sales_rep_id}
+        currentStatus={conversation.handoff_active}
+        isActive={conversation.status === "running"}
+      />
     </div>
   );
 };

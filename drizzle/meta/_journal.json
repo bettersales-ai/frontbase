@@ -5,36 +5,8 @@
     {
       "idx": 0,
       "version": "7",
-      "when": 1747318237539,
-      "tag": "0000_steady_dragon_man",
-      "breakpoints": true
-    },
-    {
-      "idx": 1,
-      "version": "7",
-      "when": 1747348068239,
-      "tag": "0001_puzzling_swordsman",
-      "breakpoints": true
-    },
-    {
-      "idx": 2,
-      "version": "7",
-      "when": 1747348359792,
-      "tag": "0002_slow_catseye",
-      "breakpoints": true
-    },
-    {
-      "idx": 3,
-      "version": "7",
-      "when": 1747348888720,
-      "tag": "0003_thin_khan",
-      "breakpoints": true
-    },
-    {
-      "idx": 4,
-      "version": "7",
-      "when": 1747349317547,
-      "tag": "0004_sturdy_terrax",
+      "when": 1747530131740,
+      "tag": "0000_superb_starhawk",
       "breakpoints": true
     }
   ]

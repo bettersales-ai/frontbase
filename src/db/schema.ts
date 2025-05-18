@@ -97,9 +97,6 @@ export const conversationsTable = pgTable("conversations", {
 
   contact_id: varchar()
     .notNull().references(() => contactsTable.id),
-  
-  platform_id: varchar({ length: 255 })
-    .notNull().default(""),
 
   messages: jsonb()
     .$type<Message[]>()

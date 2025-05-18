@@ -1,2 +1,0 @@
-ALTER TABLE "internal"."billing_prices" ADD COLUMN "order" integer NOT NULL;--> statement-breakpoint
-ALTER TABLE "internal"."billing_prices" ADD CONSTRAINT "billing_prices_order_unique" UNIQUE("order");

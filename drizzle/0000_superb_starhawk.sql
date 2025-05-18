@@ -1,3 +1,5 @@
+CREATE SCHEMA "internal";
+--> statement-breakpoint
 CREATE TABLE "billing_history" (
 	"credits_bought" integer NOT NULL,
 	"status" varchar(255) NOT NULL,
@@ -8,6 +10,19 @@ CREATE TABLE "billing_history" (
 	"amount" numeric(1000, 2) NOT NULL,
 	"user_id" varchar NOT NULL,
 	"billing_id" varchar NOT NULL
+);
+--> statement-breakpoint
+CREATE TABLE "internal"."billing_prices" (
+	"id" varchar PRIMARY KEY NOT NULL,
+	"created_at" timestamp DEFAULT now() NOT NULL,
+	"updated_at" timestamp DEFAULT now() NOT NULL,
+	"deleted_at" timestamp,
+	"credits" integer NOT NULL,
+	"name" varchar(255) NOT NULL,
+	"order" integer NOT NULL,
+	"price" numeric(1000, 2) NOT NULL,
+	"features" jsonb DEFAULT '[]'::jsonb NOT NULL,
+	CONSTRAINT "billing_prices_order_unique" UNIQUE("order")
 );
 --> statement-breakpoint
 CREATE TABLE "billing" (
@@ -44,7 +59,8 @@ CREATE TABLE "conversations" (
 	"sales_rep_id" varchar NOT NULL,
 	"contact_id" varchar NOT NULL,
 	"messages" jsonb DEFAULT '[]'::jsonb NOT NULL,
-	"status" varchar DEFAULT 'running' NOT NULL
+	"status" varchar DEFAULT 'running' NOT NULL,
+	"handoff_active" boolean DEFAULT false NOT NULL
 );
 --> statement-breakpoint
 CREATE TABLE "products" (

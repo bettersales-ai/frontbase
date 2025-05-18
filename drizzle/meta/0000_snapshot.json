@@ -1,5 +1,5 @@
 {
-  "id": "f8a89055-2660-4425-9fb2-c866b8489e52",
+  "id": "e13a1239-4dc1-4657-9c66-aa1f6ea72108",
   "prevId": "00000000-0000-0000-0000-000000000000",
   "version": "7",
   "dialect": "postgresql",
@@ -100,9 +100,9 @@
       "checkConstraints": {},
       "isRLSEnabled": false
     },
-    "internal.billing_prices": {
+    "kickads_internal.billing_prices": {
       "name": "billing_prices",
-      "schema": "internal",
+      "schema": "kickads_internal",
       "columns": {
         "id": {
           "name": "id",
@@ -744,7 +744,7 @@
   },
   "enums": {},
   "schemas": {
-    "internal": "internal"
+    "kickads_internal": "kickads_internal"
   },
   "sequences": {},
   "roles": {},

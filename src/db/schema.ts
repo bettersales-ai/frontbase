@@ -138,7 +138,7 @@ export const billingHistoryTable = pgTable("billing_history", {
 });
 
 
-export const internalSchema = pgSchema("internal");
+export const internalSchema = pgSchema("kickads_internal");
 
 export const billingPricesTable = internalSchema.table("billing_prices", {
   id: varchar().primaryKey().$defaultFn(nanoid),

@@ -1,4 +1,4 @@
-CREATE SCHEMA "internal";
+CREATE SCHEMA "kickads_internal";
 --> statement-breakpoint
 CREATE TABLE "billing_history" (
 	"credits_bought" integer NOT NULL,
@@ -12,7 +12,7 @@ CREATE TABLE "billing_history" (
 	"billing_id" varchar NOT NULL
 );
 --> statement-breakpoint
-CREATE TABLE "internal"."billing_prices" (
+CREATE TABLE "kickads_internal"."billing_prices" (
 	"id" varchar PRIMARY KEY NOT NULL,
 	"created_at" timestamp DEFAULT now() NOT NULL,
 	"updated_at" timestamp DEFAULT now() NOT NULL,

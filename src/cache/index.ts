@@ -1,7 +1,5 @@
 import { createClient } from "redis";
 
-let connected = false;
-
 const cache = createClient({
   url: process.env.REDIS_URL,
 });
@@ -9,14 +7,11 @@ const cache = createClient({
 cache.on("error", err => console.log("Redis cache Error", err));
 
 (async () => {
-  if (!connected) {
-    try {
-      await cache.connect();
-      console.log("Connected to Redis cache");
-      connected = true;
-    } catch (error) {
-      console.error("Error connecting to Redis cache", error);
-    }
+  try {
+    await cache.connect();
+    console.log("Connected to Redis cache");
+  } catch (error) {
+    console.error("Error connecting to Redis cache", error);
   }
 })();
 
